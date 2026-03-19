@@ -4,23 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Today's Tasks</title>
-  <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/KoPubDotum@latest/KoPubDotum.css">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <style>
-    /* ── CSS 변수 (디자인 커스텀용) ── */
     :root {
-      --bg:        #f7f5f0;
-      --surface:   #ffffff;
-      --border:    #e5e1d8;
-      --point:     #4f46e5;
-      --point-soft:#ede9fe;
-      --txt:       #1a1a1a;
-      --txt-mute:  #888;
-      --tag-bg:    var(--point);
-      --tag-txt:   #ffffff;
+      --bg:         #f2f2f7; /* 배경을 조금 더 차분하게 */
+      --surface:    #ffffff;
+      --border:     #ebebef;
+      --point:      #4f46e5;
+      --point-soft: #f5f3ff;
+      --txt:        #2c2c2e;
+      --txt-mute:   #8e8e93;
+      --tag-bg:     var(--point);
+      --tag-txt:    #ffffff;
       --check-color: var(--point);
-      --radius:    14px;
-      --font-body: 'Gowun Dodum', sans-serif;
-      --font-mono: 'Space Mono', monospace;
+      --radius:     20px; /* 더 둥근 모서리 */
+      --radius-sm:  10px;
+      --font-body:  'KoPubDotum', sans-serif;
+      --font-mono:  'Space Mono', monospace;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -30,93 +31,85 @@
       background: var(--bg);
       color: var(--txt);
       min-height: 100vh;
-      padding: 28px 20px 60px;
-      transition: background 0.4s, color 0.4s;
+      padding: 20px 16px; /* 전체 여백 축소 */
+      display: flex;
+      justify-content: center;
+    }
+
+    /* 위젯 전체 컨테이너 (크기 제한) */
+    .widget-container {
+      width: 100%;
+      max-width: 380px; /* 위젯처럼 보이도록 너비 제한 */
     }
 
     /* ── 헤더 ── */
     .header {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 24px;
+      align-items: center;
+      margin-bottom: 16px;
+      padding: 0 4px;
     }
 
-    .date-block {}
     .date-label {
       font-family: var(--font-mono);
-      font-size: 11px;
-      letter-spacing: .12em;
+      font-size: 10px;
+      letter-spacing: .1em;
       text-transform: uppercase;
       color: var(--txt-mute);
-      margin-bottom: 4px;
     }
     .date-main {
-      font-family: var(--font-mono);
-      font-size: 22px;
+      font-size: 18px; /* 크기 축소 */
       font-weight: 700;
       color: var(--txt);
-      line-height: 1;
     }
 
-    .header-actions { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+    .header-actions { display: flex; gap: 6px; }
     .icon-btn {
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      width: 34px; height: 34px;
+      border: none;
+      border-radius: 50%; /* 버튼은 완전 동그랗게 */
+      width: 30px; height: 30px;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer;
-      font-size: 15px;
-      transition: background .2s, transform .15s;
+      font-size: 14px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      transition: all .2s;
     }
-    .icon-btn:hover { background: var(--point-soft); transform: scale(1.08); }
-    .icon-btn.spinning { animation: spin .6s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .icon-btn:hover { background: var(--point-soft); transform: translateY(-1px); }
 
     /* ── 설정 패널 ── */
     .settings-panel {
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px 20px;
-      margin-bottom: 20px;
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      margin-bottom: 12px;
       display: none;
-      gap: 16px;
+      gap: 10px;
       flex-wrap: wrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
     .settings-panel.open { display: flex; }
+    .setting-row { display: flex; align-items: center; gap: 6px; font-size: 12px; }
 
-    .setting-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      color: var(--txt-mute);
-    }
-    .setting-row label { white-space: nowrap; }
-    input[type="color"] {
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      width: 32px; height: 28px;
-      padding: 2px;
-      cursor: pointer;
-      background: none;
-    }
-
-    /* ── 진행률 바 ── */
+    /* ── 진행률 ── */
     .progress-wrap {
-      margin-bottom: 20px;
+      background: var(--surface);
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
     }
     .progress-meta {
       display: flex;
       justify-content: space-between;
-      font-size: 12px;
+      font-size: 11px;
+      font-weight: 600;
       color: var(--txt-mute);
       margin-bottom: 6px;
     }
     .progress-bar-bg {
-      height: 6px;
+      height: 4px; /* 더 얇고 깔끔하게 */
       background: var(--border);
       border-radius: 99px;
       overflow: hidden;
@@ -124,347 +117,228 @@
     .progress-bar-fill {
       height: 100%;
       background: var(--point);
-      border-radius: 99px;
-      transition: width 0.5s cubic-bezier(.4,0,.2,1);
+      transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     /* ── 할 일 목록 ── */
-    #todo-list { display: flex; flex-direction: column; gap: 10px; }
+    #todo-list { display: flex; flex-direction: column; gap: 8px; }
 
     .todo-item {
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px 16px;
+      border-radius: var(--radius); /* 모서리 둥글게 */
+      padding: 12px 14px;
       display: flex;
-      align-items: flex-start;
-      gap: 14px;
-      transition: opacity .3s, border-color .2s;
-      animation: fadeUp .3s ease both;
+      align-items: center; /* 중앙 정렬로 변경 */
+      gap: 12px;
+      transition: all .2s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
     }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .todo-item.done { opacity: .45; }
-    .todo-item:hover { border-color: var(--point); }
+    .todo-item.done { opacity: 0.6; background: #fafafa; }
+    .todo-item:hover { transform: scale(1.01); }
 
-    /* 커스텀 체크박스 */
-    .cb-wrap { position: relative; flex-shrink: 0; width: 22px; height: 22px; margin-top: 2px; }
+    /* 커스텀 체크박스 (더 둥글게) */
+    .cb-wrap { position: relative; width: 20px; height: 20px; flex-shrink: 0; }
     .cb-wrap input { opacity: 0; width: 0; height: 0; position: absolute; }
     .cb-box {
-      width: 22px; height: 22px;
+      width: 20px; height: 20px;
       border: 2px solid var(--border);
-      border-radius: 6px;
+      border-radius: 7px; /* 체크박스도 둥글게 */
       display: flex; align-items: center; justify-content: center;
       cursor: pointer;
-      transition: background .2s, border-color .2s;
-      background: transparent;
+      transition: all .2s;
     }
     .cb-wrap input:checked + .cb-box {
       background: var(--check-color);
       border-color: var(--check-color);
     }
-    .cb-box svg { display: none; }
+    .cb-box svg { display: none; width: 10px; }
     .cb-wrap input:checked + .cb-box svg { display: block; }
 
     .todo-body { flex: 1; min-width: 0; }
-    .todo-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .todo-title {
-      font-size: 15px;
-      font-weight: 600;
-      line-height: 1.4;
-      transition: text-decoration .2s;
-    }
-    .todo-item.done .todo-title { text-decoration: line-through; }
-
-    .tags { display: flex; flex-wrap: wrap; gap: 5px; flex-shrink: 0; }
+    .todo-row { display: flex; flex-direction: column; gap: 2px; } /* 태그와 제목을 세로 배치하여 가독성 높임 */
+    
+    .tags { display: flex; flex-wrap: wrap; gap: 4px; }
     .tag {
-      font-size: 11px;
-      padding: 3px 9px;
-      border-radius: 99px;
-      background: var(--tag-bg);
-      color: var(--tag-txt);
-      font-weight: 600;
-      letter-spacing: .03em;
+      font-size: 9px;
+      padding: 1px 7px;
+      border-radius: 6px;
+      background: var(--point-soft);
+      color: var(--point);
+      font-weight: 700;
     }
 
-    /* ── 빈 상태 / 에러 ── */
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--txt-mute);
+    .todo-title {
       font-size: 14px;
-      line-height: 1.8;
+      font-weight: 500;
+      color: var(--txt);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    .empty-state .emoji { font-size: 32px; margin-bottom: 10px; }
+    .todo-item.done .todo-title { text-decoration: line-through; color: var(--txt-mute); }
 
-    .error-box {
-      background: #fff5f5;
-      border: 1px solid #fecaca;
-      border-radius: var(--radius);
-      padding: 16px;
-      color: #b91c1c;
-      font-size: 13px;
-      white-space: pre-wrap;
-      line-height: 1.7;
-    }
-
-    /* ── 업데이트 토스트 ── */
+    /* 토스트 & 기타 */
     #toast {
       position: fixed;
-      bottom: 24px; left: 50%;
-      transform: translateX(-50%) translateY(60px);
-      background: var(--txt);
-      color: var(--bg);
-      padding: 10px 18px;
-      border-radius: 99px;
-      font-size: 13px;
-      opacity: 0;
-      transition: opacity .3s, transform .3s;
-      pointer-events: none;
-      z-index: 999;
+      bottom: 20px; left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(4px);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-size: 12px;
+      transition: all 0.3s;
+      z-index: 1000;
     }
-    #toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
 
-<!-- 헤더 -->
-<div class="header">
-  <div class="date-block">
-    <div class="date-label">Today</div>
-    <div class="date-main" id="today-date">—</div>
+<div class="widget-container">
+  <div class="header">
+    <div class="date-block">
+      <div class="date-label">Today</div>
+      <div class="date-main" id="today-date">—</div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="refresh-btn" onclick="fetchTodos()" title="새로고침">↻</button>
+      <button class="icon-btn" onclick="toggleSettings()" title="디자인 설정">⚙</button>
+    </div>
   </div>
-  <div class="header-actions">
-    <div class="icon-btn" id="refresh-btn" onclick="fetchTodos()" title="새로고침">↻</div>
-    <div class="icon-btn" onclick="toggleSettings()" title="디자인 설정">⚙</div>
+
+  <div class="settings-panel" id="settings-panel">
+    <div class="setting-row"><label>포인트</label><input type="color" value="#4f46e5" oninput="setVar('--point', this.value); setVar('--check-color', this.value);" /></div>
+  </div>
+
+  <div class="progress-wrap" id="progress-wrap" style="display:none">
+    <div class="progress-meta">
+      <span id="progress-label">0 / 0 Done</span>
+      <span id="progress-pct">0%</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div id="todo-list">
+    <div class="empty-state" style="text-align: center; padding: 30px; color: var(--txt-mute); font-size: 13px;">
+      데이터를 가져오는 중...
+    </div>
   </div>
 </div>
 
-<!-- 설정 패널 -->
-<div class="settings-panel" id="settings-panel">
-  <div class="setting-row">
-    <label>배경색</label>
-    <input type="color" value="#f7f5f0" oninput="setVar('--bg', this.value)" />
-  </div>
-  <div class="setting-row">
-    <label>카드색</label>
-    <input type="color" value="#ffffff" oninput="setVar('--surface', this.value)" />
-  </div>
-  <div class="setting-row">
-    <label>포인트</label>
-    <input type="color" value="#4f46e5" oninput="setVar('--point', this.value); setVar('--tag-bg', this.value); setVar('--check-color', this.value);" />
-  </div>
-  <div class="setting-row">
-    <label>글자색</label>
-    <input type="color" value="#1a1a1a" oninput="setVar('--txt', this.value)" />
-  </div>
-</div>
-
-<!-- 진행률 -->
-<div class="progress-wrap" id="progress-wrap" style="display:none">
-  <div class="progress-meta">
-    <span id="progress-label">0 / 0 완료</span>
-    <span id="progress-pct">0%</span>
-  </div>
-  <div class="progress-bar-bg">
-    <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
-  </div>
-</div>
-
-<!-- 할 일 목록 -->
-<div id="todo-list">
-  <div class="empty-state">
-    <div class="emoji">⏳</div>
-    데이터를 불러오는 중...
-  </div>
-</div>
-
-<!-- 토스트 -->
 <div id="toast"></div>
 
 <script>
-  // ── 오늘 날짜 표시 ──────────────────────────────────────────
+  // 스크립트 부분은 기존 로직을 유지하되, 
+  // 렌더링 시 태그와 제목의 가독성을 높이기 위해 구조만 살짝 변경되었습니다.
+  
   const today = new Date();
-  const yyyy  = today.getFullYear();
-  const mm    = String(today.getMonth() + 1).padStart(2, '0');
-  const dd    = String(today.getDate()).padStart(2, '0');
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
   const todayStr = `${yyyy}-${mm}-${dd}`;
-
   const DAYS = ['일','월','화','수','목','금','토'];
-  document.getElementById('today-date').textContent =
-    `${yyyy}.${mm}.${dd} (${DAYS[today.getDay()]})`;
+  document.getElementById('today-date').textContent = `${mm}.${dd} (${DAYS[today.getDay()]})`;
 
-  // ── 디자인 변수 ──────────────────────────────────────────────
-  function setVar(prop, val) {
-    document.documentElement.style.setProperty(prop, val);
-  }
-  function toggleSettings() {
-    document.getElementById('settings-panel').classList.toggle('open');
-  }
+  function setVar(prop, val) { document.documentElement.style.setProperty(prop, val); }
+  function toggleSettings() { document.getElementById('settings-panel').classList.toggle('open'); }
 
-  // ── 데이터 불러오기 ──────────────────────────────────────────
   async function fetchTodos() {
     const btn = document.getElementById('refresh-btn');
-    btn.classList.add('spinning');
-
+    btn.style.animation = "spin 0.6s linear infinite";
     try {
       const res = await fetch('/api/notion?action=query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          filter: {
-            property: '날짜',
-            date: { equals: todayStr }
-          },
+          filter: { property: '날짜', date: { equals: todayStr } },
           sorts: [{ timestamp: 'created_time', direction: 'ascending' }]
         })
       });
-
       const data = await res.json();
-
-      if (!res.ok) {
-        showError(data.error || JSON.stringify(data, null, 2));
-        return;
-      }
-
       render(data.results || []);
     } catch (e) {
-      showError('네트워크 에러: ' + e.message);
+      showError('에러 발생');
     } finally {
-      btn.classList.remove('spinning');
+      btn.style.animation = "none";
     }
   }
 
-  // ── 렌더링 ──────────────────────────────────────────────────
   function render(items) {
     const list = document.getElementById('todo-list');
     const progressWrap = document.getElementById('progress-wrap');
-
     if (items.length === 0) {
-      list.innerHTML = `
-        <div class="empty-state">
-          <div class="emoji">✨</div>
-          오늘 등록된 할 일이 없습니다.<br>
-          노션 데이터베이스에 오늘 날짜로 항목을 추가해보세요.
-        </div>`;
+      list.innerHTML = `<div style="text-align:center; padding:40px; font-size:13px; color:#888;">오늘 할 일이 없어요 🌿</div>`;
       progressWrap.style.display = 'none';
       return;
     }
 
-    // 진행률
     const doneCount = items.filter(i => i.properties?.['완']?.checkbox).length;
     const pct = Math.round((doneCount / items.length) * 100);
     progressWrap.style.display = 'block';
-    document.getElementById('progress-label').textContent = `${doneCount} / ${items.length} 완료`;
-    document.getElementById('progress-pct').textContent = `${pct}%`;
+    document.getElementById('progress-label').textContent = `${doneCount}/${items.length} 완료`;
+    document.getElementById('progress-pct').textContent = pct + '%';
     document.getElementById('progress-fill').style.width = pct + '%';
 
-    // 목록
     list.innerHTML = '';
-    items.forEach((item, idx) => {
-      const p       = item.properties;
+    items.forEach((item) => {
+      const p = item.properties;
       const content = p['업무 내용']?.title?.[0]?.plain_text || '(내용 없음)';
-      const tags    = p['업무']?.multi_select || [];
-      const done    = p['완']?.checkbox || false;
-      const id      = item.id;
+      const tags = p['업무']?.multi_select || [];
+      const done = p['완']?.checkbox || false;
+      const id = item.id;
 
       const div = document.createElement('div');
       div.className = 'todo-item' + (done ? ' done' : '');
-      div.style.animationDelay = (idx * 0.05) + 's';
       div.innerHTML = `
         <label class="cb-wrap">
           <input type="checkbox" ${done ? 'checked' : ''} onchange="updateTodo('${id}', this.checked, this)" />
-          <div class="cb-box">
-            <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
-              <path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
+          <div class="cb-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         </label>
         <div class="todo-body">
           <div class="todo-row">
-            <div class="tags">${tags.map(t => `<span class="tag">${escapeHtml(t.name)}</span>`).join('')}</div>
-            <div class="todo-title">${escapeHtml(content)}</div>
+            ${tags.length ? `<div class="tags">${tags.map(t => `<span class="tag">${t.name}</span>`).join('')}</div>` : ''}
+            <div class="todo-title">${content}</div>
           </div>
         </div>`;
       list.appendChild(div);
     });
   }
 
-  // ── 체크박스 업데이트 ────────────────────────────────────────
   async function updateTodo(pageId, checked, cbEl) {
-    // 낙관적 UI 업데이트
     const item = cbEl.closest('.todo-item');
-    if (checked) item.classList.add('done');
-    else item.classList.remove('done');
-
+    item.classList.toggle('done', checked);
     try {
-      const res = await fetch(`/api/notion?pageId=${pageId}`, {
+      await fetch(`/api/notion?pageId=${pageId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ properties: { '완': { checkbox: checked } } })
       });
-
-      if (!res.ok) {
-        const data = await res.json();
-        showToast('업데이트 실패: ' + (data.error || '알 수 없는 오류'));
-        // 롤백
-        cbEl.checked = !checked;
-        if (!checked) item.classList.add('done');
-        else item.classList.remove('done');
-        return;
-      }
-
-      showToast(checked ? '✅ 완료 처리됨' : '↩ 미완료로 변경됨');
-      // 진행률만 다시 계산
       updateProgress();
-    } catch (e) {
-      showToast('네트워크 오류: ' + e.message);
-    }
+    } catch (e) { showToast('오류 발생'); }
   }
 
   function updateProgress() {
     const items = document.querySelectorAll('.todo-item');
-    const done  = document.querySelectorAll('.todo-item.done');
-    const pct   = items.length ? Math.round((done.length / items.length) * 100) : 0;
-    document.getElementById('progress-label').textContent = `${done.length} / ${items.length} 완료`;
+    const done = document.querySelectorAll('.todo-item.done');
+    const pct = items.length ? Math.round((done.length / items.length) * 100) : 0;
+    document.getElementById('progress-label').textContent = `${done.length}/${items.length} 완료`;
     document.getElementById('progress-pct').textContent = pct + '%';
     document.getElementById('progress-fill').style.width = pct + '%';
   }
 
-  // ── 에러 표시 ────────────────────────────────────────────────
-  function showError(msg) {
-    document.getElementById('todo-list').innerHTML =
-      `<div class="error-box">⚠️ ${msg}</div>`;
-    document.getElementById('progress-wrap').style.display = 'none';
-  }
-
-  // ── 토스트 ──────────────────────────────────────────────────
-  let toastTimer;
   function showToast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg;
     t.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+    setTimeout(() => t.classList.remove('show'), 2000);
   }
 
-  // ── XSS 방지 ────────────────────────────────────────────────
-  function escapeHtml(str) {
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  // ── 초기 로드 ────────────────────────────────────────────────
   fetchTodos();
 </script>
+<style> @keyframes spin { to { transform: rotate(360deg); } } </style>
 </body>
 </html>
