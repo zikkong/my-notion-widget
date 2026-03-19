@@ -31,9 +31,11 @@
       display: flex;
       justify-content: center;
       transition: background 0.3s;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
     }
 
-    .widget-container { width: 100%; max-width: 340px; }
+    .widget-container { width: 100%; max-width: 460px; }
 
     /* ── 헤더 ── */
     .header {
@@ -113,7 +115,7 @@
     }
 
     .day-cell {
-      aspect-ratio: 1;
+      min-height: 48px;
       border-radius: 10px;
       display: flex;
       flex-direction: column;
@@ -140,7 +142,7 @@
     .day-cell.today.saturday .day-num { color: #fff; }
 
     .day-num {
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
       line-height: 1;
     }
