@@ -366,7 +366,7 @@
         </label>
         <div class="todo-body">
           <div class="todo-row">
-            ${tags.map(t => `<span class="tag" style="background:${getTagColor(t.name)}">${escapeHtml(t.name)}</span>`).join('')}
+            ${tags.map(t => `<span class="tag" style="background:${getTagColor(t.color)}">${escapeHtml(t.name)}</span>`).join('')}
             <div class="todo-title">${escapeHtml(content)}</div>
           </div>
         </div>`;
@@ -418,21 +418,22 @@
     toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
   }
 
-  // ── 태그 색상 자동 배정 ──
-  const TAG_COLORS = [
-    '#5c7cfa', '#f03e3e', '#f59f00', '#12b886',
-    '#ae3ec9', '#1c7ed6', '#e8590c', '#2f9e44',
-    '#d6336c', '#0ca678'
-  ];
-  const tagColorMap = {};
-  let tagColorIdx = 0;
+  // ── 노션 태그 색상 매핑 ──
+  const NOTION_COLORS = {
+    default:  '#343a40',
+    gray:     '#868e96',
+    brown:    '#a0522d',
+    orange:   '#e8590c',
+    yellow:   '#f59f00',
+    green:    '#2f9e44',
+    blue:     '#1c7ed6',
+    purple:   '#ae3ec9',
+    pink:     '#d6336c',
+    red:      '#f03e3e',
+  };
 
-  function getTagColor(name) {
-    if (!tagColorMap[name]) {
-      tagColorMap[name] = TAG_COLORS[tagColorIdx % TAG_COLORS.length];
-      tagColorIdx++;
-    }
-    return tagColorMap[name];
+  function getTagColor(notionColor) {
+    return NOTION_COLORS[notionColor] || NOTION_COLORS.default;
   }
 
   function escapeHtml(str) {
