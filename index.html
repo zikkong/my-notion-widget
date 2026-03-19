@@ -28,26 +28,26 @@
       background: var(--bg);
       color: var(--txt);
       min-height: 100vh;
-      padding: 30px 20px 100px;
+      padding: 20px 14px 90px;
       display: flex;
       justify-content: center;
       transition: background 0.3s, color 0.3s;
     }
 
-    .widget-container { width: 100%; max-width: 400px; }
+    .widget-container { width: 100%; max-width: 300px; }
 
     /* ── 헤더 ── */
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
-      padding: 0 4px;
+      margin-bottom: 12px;
+      padding: 0 2px;
     }
 
     .date-main {
       font-family: 'Freesentation', 'KoPubDotum', sans-serif;
-      font-size: 40px;
+      font-size: 28px;
       font-weight: 700;
       color: var(--txt);
       letter-spacing: -1.5px;
@@ -55,7 +55,7 @@
     }
 
     .date-sub {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--txt-mute);
       margin-top: 5px;
       padding-left: 2px;
@@ -82,8 +82,8 @@
     .settings-panel {
       background: var(--surface);
       border-radius: var(--radius);
-      padding: 16px 18px;
-      margin-bottom: 14px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
       box-shadow: var(--shadow);
       display: none;
       flex-wrap: wrap;
@@ -95,7 +95,7 @@
       display: flex;
       align-items: center;
       gap: 7px;
-      font-size: 12px;
+      font-size: 11px;
       color: var(--txt-mute);
     }
     .setting-row label { white-space: nowrap; font-weight: 700; }
@@ -113,7 +113,7 @@
       position: fixed;
       bottom: 0; left: 0; right: 0;
       background: var(--surface);
-      padding: 14px 24px 20px;
+      padding: 10px 18px 16px;
       box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
       z-index: 100;
       border-radius: 28px 28px 0 0;
@@ -121,7 +121,7 @@
     .progress-meta {
       display: flex;
       justify-content: space-between;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       color: var(--txt-mute);
       margin-bottom: 8px;
@@ -140,12 +140,12 @@
     }
 
     /* ── 할 일 목록 ── */
-    #todo-list { display: flex; flex-direction: column; gap: 10px; }
+    #todo-list { display: flex; flex-direction: column; gap: 8px; }
 
     .todo-item {
       background: var(--surface);
       border-radius: var(--radius);
-      padding: 14px 18px;
+      padding: 10px 14px;
       display: flex;
       align-items: center;
       gap: 12px;
@@ -197,7 +197,7 @@
     }
 
     .todo-title {
-      font-size: 14.5px;
+      font-size: 13px;
       font-weight: 500;
       color: #495057;
       white-space: nowrap;
