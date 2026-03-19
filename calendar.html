@@ -246,49 +246,6 @@
     .todo-item.done .todo-title { text-decoration: line-through; color: var(--txt-mute); }
 
     .empty-msg { text-align: center; padding: 24px 0; color: var(--txt-mute); font-size: 13px; font-weight: 300; }
-
-    /* ── 하단 진행률 ── */
-    .bottom-area {
-      position: sticky;
-      bottom: 0;
-      z-index: 50;
-      padding: 18px 4px 4px;
-      background: repeating-linear-gradient(
-        to right,
-        var(--green-light) 0px,
-        var(--green-light) 18px,
-        var(--green-dark) 18px,
-        var(--green-dark) 36px
-      );
-      border-radius: 0 0 var(--radius) var(--radius);
-    }
-    .progress-inner {
-      background: rgba(255,255,255,0.6);
-      border-radius: 12px;
-      padding: 10px 14px 14px;
-    }
-    .progress-meta {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--txt);
-      margin-bottom: 7px;
-    }
-    .progress-bar-bg {
-      height: 14px;
-      background: #fff;
-      border: 1.5px solid var(--border);
-      border-radius: 99px;
-      overflow: hidden;
-    }
-    .progress-bar-fill {
-      height: 100%;
-      background: var(--done-bg);
-      border-radius: 99px;
-      transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
     /* 토스트 */
     #toast {
       position: fixed;
@@ -346,16 +303,7 @@
     <div id="task-list"></div>
   </div>
 
-  <!-- 하단 진행률 -->
-  <div class="bottom-area" id="progress-wrap" style="display:none">
-    <div class="progress-inner">
-      <div class="progress-meta">
-        <span id="progress-label">0 / 0 완료</span>
-        <span id="progress-pct">0%</span>
-      </div>
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
-      </div>
+</div>
     </div>
   </div>
 
@@ -405,7 +353,6 @@
     if (curMonth < 0)  { curMonth = 11; curYear--; }
     selectedDate = null;
     document.getElementById('selected-section').style.display = 'none';
-    document.getElementById('progress-wrap').style.display = 'none';
     loadMonth();
   }
 
@@ -504,7 +451,6 @@
     const section = document.getElementById('selected-section');
     const label   = document.getElementById('selected-label');
     const list    = document.getElementById('task-list');
-    const progressWrap = document.getElementById('progress-wrap');
     const [y, m, d] = dateStr.split('-');
     const dow = new Date(dateStr).getDay();
     label.textContent = `${parseInt(m)}월 ${parseInt(d)}일 (${DAYS[dow]})`;
@@ -513,15 +459,9 @@
     const info = monthData[dateStr];
     if (!info || info.items.length === 0) {
       list.innerHTML = `<div class="empty-msg">등록된 할 일이 없어요 🌸</div>`;
-      progressWrap.style.display = 'none';
       return;
     }
 
-    const pct = Math.round((info.done / info.total) * 100);
-    progressWrap.style.display = 'block';
-    document.getElementById('progress-label').textContent = `${info.done} / ${info.total} 완료`;
-    document.getElementById('progress-pct').textContent = pct + '%';
-    document.getElementById('progress-fill').style.width = pct + '%';
 
     const items = [...info.items].sort((a, b) => {
       const tA = a.properties?.['업무']?.multi_select?.[0]?.name || 'ㅿ';
