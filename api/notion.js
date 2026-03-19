@@ -28,33 +28,33 @@ export default async function handler(req, res) {
   };
 
   try {
-    // 오늘 할 일 목록 가져오기
-    if (req.method === "POST" && req.url.includes("/query")) {
-      const response = await fetch(
-        `https://api.notion.com/v1/databases/${DB_ID}/query`,
-        {
-          method: "POST",
-          headers: notionHeaders,
-          body: JSON.stringify(req.body),
-        }
-      );
-      const data = await response.json();
-      return res.status(response.status).json(data);
-    }
-
-    // 체크박스 업데이트
+    // 체크박스 업데이트 (PATCH)
     if (req.method === "PATCH") {
       const pageId = req.query.pageId;
       if (!pageId) return res.status(400).json({ error: "pageId 없음" });
 
-      const response = await fetch(
-        `https://api.notion.com/v1/pages/${pageId}`,
-        {
-          method: "PATCH",
-          headers: notionHeaders,
-          body: JSON.stringify(req.body),
-        }
-      );
+      const response = await fetch(`https://api.notion.com/v1/pages/${pageId}`, {
+        method: "PATCH",
+        headers: notionHeaders,
+        body: JSON.stringify(req.body),
+      });
+      const data = await response.json();
+      return res.status(response.status).json(data);
+    }
+
+    // 할 일 목록 가져오기 (POST 또는 GET)
+    if (req.method === "POST" || req.method === "GET") {
+      const today = new Date().toISOString().split("T")[0];
+      const body = req.method === "POST" ? req.body : {
+        filter: { property: "날짜", date: { equals: today } },
+        sorts: [{ timestamp: "created_time", direction: "ascending" }],
+      };
+
+      const response = await fetch(`https://api.notion.com/v1/databases/${DB_ID}/query`, {
+        method: "POST",
+        headers: notionHeaders,
+        body: JSON.stringify(body),
+      });
       const data = await response.json();
       return res.status(response.status).json(data);
     }
