@@ -5,19 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Today's Tasks</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/KoPubDotum@latest/KoPubDotum.css">
+  <link href="https://fonts.googleapis.com/css2?family=Freesentation:wght@700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg:         #f8f9fa; /* 밝고 깨끗한 배경 */
-      --surface:    #ffffff;
-      --border:     #f1f3f5;
-      --point:      #5c7cfa; /* 부드러운 블루 */
-      --tag-bg:     #343a40; /* 요청하신 어두운 태그 배경 */
-      --tag-txt:    #ffffff;
-      --txt:        #212529;
-      --txt-mute:   #adb5bd;
-      --radius:     24px;   /* 아주 둥근 모서리 */
-      --shadow:     0 8px 20px rgba(0,0,0,0.06);
-      --font-body:  'KoPubDotum', sans-serif;
+      --bg:       #f8f9fa;
+      --surface:  #ffffff;
+      --border:   #f1f3f5;
+      --point:    #5c7cfa;
+      --tag-bg:   #343a40;
+      --tag-txt:  #ffffff;
+      --txt:      #212529;
+      --txt-mute: #adb5bd;
+      --radius:   24px;
+      --shadow:   0 8px 20px rgba(0,0,0,0.06);
+      --font-body: 'KoPubDotum', sans-serif;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -27,49 +28,92 @@
       background: var(--bg);
       color: var(--txt);
       min-height: 100vh;
-      padding: 30px 20px;
+      padding: 30px 20px 60px;
       display: flex;
       justify-content: center;
+      transition: background 0.3s, color 0.3s;
     }
 
-    .widget-container {
-      width: 100%;
-      max-width: 400px;
-    }
+    .widget-container { width: 100%; max-width: 400px; }
 
     /* ── 헤더 ── */
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
-      padding: 0 8px;
+      margin-bottom: 16px;
+      padding: 0 4px;
     }
+
     .date-main {
-      font-size: 20px;
+      font-family: 'Freesentation', 'KoPubDotum', sans-serif;
+      font-size: 40px;
       font-weight: 700;
       color: var(--txt);
-      letter-spacing: -0.5px;
+      letter-spacing: -1.5px;
+      line-height: 1;
     }
-    .refresh-btn {
+
+    .date-sub {
+      font-size: 12px;
+      color: var(--txt-mute);
+      margin-top: 5px;
+      padding-left: 2px;
+    }
+
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+
+    .icon-btn {
       background: var(--surface);
       border: none;
       border-radius: 50%;
-      width: 32px; height: 32px;
+      width: 34px; height: 34px;
       cursor: pointer;
       box-shadow: var(--shadow);
       display: flex; align-items: center; justify-content: center;
       font-size: 16px;
-      transition: transform 0.2s;
+      transition: transform .2s;
     }
-    .refresh-btn:active { transform: scale(0.9); }
+    .icon-btn:active { transform: scale(0.88); }
+    .icon-btn.spinning { animation: spin .6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── 진행률 (이미지 속 게이지 느낌) ── */
+    /* ── 설정 패널 ── */
+    .settings-panel {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+      display: none;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .settings-panel.open { display: flex; }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: var(--txt-mute);
+    }
+    .setting-row label { white-space: nowrap; font-weight: 700; }
+    input[type="color"] {
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      width: 30px; height: 26px;
+      padding: 2px;
+      cursor: pointer;
+      background: none;
+    }
+
+    /* ── 진행률 ── */
     .progress-wrap {
       background: var(--surface);
-      padding: 18px;
+      padding: 16px 18px;
       border-radius: var(--radius);
-      margin-bottom: 20px;
+      margin-bottom: 14px;
       box-shadow: var(--shadow);
     }
     .progress-meta {
@@ -77,6 +121,7 @@
       justify-content: space-between;
       font-size: 12px;
       font-weight: 700;
+      color: var(--txt-mute);
       margin-bottom: 8px;
     }
     .progress-bar-bg {
@@ -104,17 +149,21 @@
       gap: 12px;
       box-shadow: var(--shadow);
       transition: all 0.3s;
-      border: 1px solid transparent;
+      animation: fadeUp .3s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
     .todo-item.done {
-      opacity: 0.6;
+      opacity: 0.55;
       box-shadow: none;
       background: #f1f3f5;
     }
 
-    /* 체크박스 디자인 */
+    /* 체크박스 */
     .cb-wrap { position: relative; width: 22px; height: 22px; flex-shrink: 0; }
-    .cb-wrap input { opacity: 0; position: absolute; }
+    .cb-wrap input { opacity: 0; position: absolute; width: 0; height: 0; }
     .cb-box {
       width: 22px; height: 22px;
       border: 2px solid #dee2e6;
@@ -130,16 +179,16 @@
     .cb-box svg { width: 11px; display: none; }
     .cb-wrap input:checked + .cb-box svg { display: block; }
 
-    /* 한 줄 텍스트 및 태그 */
+    /* 한 줄 레이아웃 */
     .todo-body { flex: 1; min-width: 0; }
-    .todo-row { display: flex; align-items: center; gap: 10px; }
+    .todo-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
     .tag {
       font-size: 11px;
       padding: 3px 10px;
       border-radius: 8px;
-      background: var(--tag-bg); /* 어두운 배경 */
-      color: var(--tag-txt);    /* 하얀 글씨 */
+      background: var(--tag-bg);
+      color: var(--tag-txt);
       font-weight: 700;
       flex-shrink: 0;
       letter-spacing: -0.2px;
@@ -167,40 +216,90 @@
       font-size: 13px;
       box-shadow: 0 10px 20px rgba(0,0,0,0.2);
       transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      pointer-events: none;
+      z-index: 999;
     }
     #toast.show { transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
-
 <div class="widget-container">
+
+  <!-- 헤더 -->
   <div class="header">
-    <div class="date-main" id="today-date">03.19 (목)</div>
-    <button class="refresh-btn" onclick="fetchTodos()">↻</button>
+    <div>
+      <div class="date-main" id="today-date">—</div>
+      <div class="date-sub" id="today-sub">—</div>
+    </div>
+    <div class="header-actions">
+      <div class="icon-btn" id="refresh-btn" onclick="fetchTodos()">↻</div>
+      <div class="icon-btn" onclick="toggleSettings()">⚙</div>
+    </div>
   </div>
 
+  <!-- 설정 패널 -->
+  <div class="settings-panel" id="settings-panel">
+    <div class="setting-row">
+      <label>배경</label>
+      <input type="color" value="#f8f9fa" oninput="setVar('--bg', this.value)" />
+    </div>
+    <div class="setting-row">
+      <label>카드</label>
+      <input type="color" value="#ffffff" oninput="setVar('--surface', this.value)" />
+    </div>
+    <div class="setting-row">
+      <label>포인트</label>
+      <input type="color" value="#5c7cfa" oninput="setVar('--point', this.value)" />
+    </div>
+    <div class="setting-row">
+      <label>태그</label>
+      <input type="color" value="#343a40" oninput="setVar('--tag-bg', this.value)" />
+    </div>
+    <div class="setting-row">
+      <label>글자</label>
+      <input type="color" value="#212529" oninput="setVar('--txt', this.value)" />
+    </div>
+  </div>
+
+  <!-- 진행률 -->
   <div class="progress-wrap" id="progress-wrap" style="display:none">
     <div class="progress-meta">
       <span id="progress-label">Task Done</span>
       <span id="progress-pct">0%</span>
     </div>
-    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill"></div></div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+    </div>
   </div>
 
+  <!-- 할 일 목록 -->
   <div id="todo-list">
     <div style="text-align:center; padding:40px; color:#adb5bd; font-size:14px;">불러오는 중...</div>
   </div>
-</div>
 
+</div>
 <div id="toast"></div>
 
 <script>
+  // ── 날짜 ──
   const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
+  const yyyy  = today.getFullYear();
+  const mm    = String(today.getMonth() + 1).padStart(2, '0');
+  const dd    = String(today.getDate()).padStart(2, '0');
+  const todayStr = `${yyyy}-${mm}-${dd}`;
   const DAYS = ['일','월','화','수','목','금','토'];
-  document.getElementById('today-date').textContent = `${today.getMonth()+1}.${today.getDate()} (${DAYS[today.getDay()]})`;
 
+  document.getElementById('today-date').textContent = `${mm}.${dd}`;
+  document.getElementById('today-sub').textContent  = `${yyyy}년 ${today.getMonth()+1}월 ${today.getDate()}일 (${DAYS[today.getDay()]})`;
+
+  // ── 디자인 ──
+  function setVar(prop, val) { document.documentElement.style.setProperty(prop, val); }
+  function toggleSettings() { document.getElementById('settings-panel').classList.toggle('open'); }
+
+  // ── 데이터 불러오기 ──
   async function fetchTodos() {
+    const btn = document.getElementById('refresh-btn');
+    btn.classList.add('spinning');
     try {
       const res = await fetch('/api/notion?action=query', {
         method: 'POST',
@@ -211,14 +310,20 @@
         })
       });
       const data = await res.json();
+      if (!res.ok) { showError(data.error || JSON.stringify(data, null, 2)); return; }
       render(data.results || []);
-    } catch (e) { showToast('데이터 로드 실패'); }
+    } catch (e) {
+      showError('네트워크 에러: ' + e.message);
+    } finally {
+      btn.classList.remove('spinning');
+    }
   }
 
+  // ── 렌더링 ──
   function render(items) {
     const list = document.getElementById('todo-list');
     const progressWrap = document.getElementById('progress-wrap');
-    
+
     if (items.length === 0) {
       list.innerHTML = `<div style="text-align:center; padding:40px; font-size:14px; color:#adb5bd;">오늘의 할 일이 없습니다 🕊️</div>`;
       progressWrap.style.display = 'none';
@@ -228,42 +333,54 @@
     const doneCount = items.filter(i => i.properties?.['완']?.checkbox).length;
     const pct = Math.round((doneCount / items.length) * 100);
     progressWrap.style.display = 'block';
+    document.getElementById('progress-label').textContent = `${doneCount} / ${items.length} 완료`;
     document.getElementById('progress-pct').textContent = pct + '%';
     document.getElementById('progress-fill').style.width = pct + '%';
 
     list.innerHTML = '';
-    items.forEach(item => {
-      const p = item.properties;
+    items.forEach((item, idx) => {
+      const p       = item.properties;
       const content = p['업무 내용']?.title?.[0]?.plain_text || '(내용 없음)';
-      const tags = p['업무']?.multi_select || [];
-      const done = p['완']?.checkbox || false;
-      const id = item.id;
+      const tags    = p['업무']?.multi_select || [];
+      const done    = p['완']?.checkbox || false;
+      const id      = item.id;
 
       const div = document.createElement('div');
       div.className = 'todo-item' + (done ? ' done' : '');
+      div.style.animationDelay = (idx * 0.05) + 's';
       div.innerHTML = `
         <label class="cb-wrap">
           <input type="checkbox" ${done ? 'checked' : ''} onchange="updateTodo('${id}', this.checked, this)" />
-          <div class="cb-box"><svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="cb-box">
+            <svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
         </label>
         <div class="todo-body">
           <div class="todo-row">
-            ${tags.map(t => `<span class="tag">${t.name}</span>`).join('')}
-            <div class="todo-title">${content}</div>
+            ${tags.map(t => `<span class="tag">${escapeHtml(t.name)}</span>`).join('')}
+            <div class="todo-title">${escapeHtml(content)}</div>
           </div>
         </div>`;
       list.appendChild(div);
     });
   }
 
+  // ── 체크박스 업데이트 ──
   async function updateTodo(pageId, checked, cbEl) {
-    cbEl.closest('.todo-item').classList.toggle('done', checked);
+    const item = cbEl.closest('.todo-item');
+    item.classList.toggle('done', checked);
     try {
-      await fetch(`/api/notion?pageId=${pageId}`, {
+      const res = await fetch(`/api/notion?pageId=${pageId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ properties: { '완': { checkbox: checked } } })
       });
+      if (!res.ok) {
+        showToast('업데이트 실패');
+        cbEl.checked = !checked;
+        item.classList.toggle('done', !checked);
+        return;
+      }
       updateProgress();
       showToast(checked ? '오늘도 수고했어요! ✨' : '다시 힘내볼까요? 🔥');
     } catch (e) { showToast('오류 발생'); }
@@ -271,17 +388,29 @@
 
   function updateProgress() {
     const items = document.querySelectorAll('.todo-item');
-    const done = document.querySelectorAll('.todo-item.done');
-    const pct = items.length ? Math.round((done.length / items.length) * 100) : 0;
+    const done  = document.querySelectorAll('.todo-item.done');
+    const pct   = items.length ? Math.round((done.length / items.length) * 100) : 0;
+    document.getElementById('progress-label').textContent = `${done.length} / ${items.length} 완료`;
     document.getElementById('progress-pct').textContent = pct + '%';
     document.getElementById('progress-fill').style.width = pct + '%';
   }
 
+  function showError(msg) {
+    document.getElementById('todo-list').innerHTML = `<div style="background:#fff5f5;border:1px solid #fecaca;border-radius:16px;padding:16px;color:#b91c1c;font-size:13px;white-space:pre-wrap;">⚠️ ${msg}</div>`;
+    document.getElementById('progress-wrap').style.display = 'none';
+  }
+
+  let toastTimer;
   function showToast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg;
     t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2000);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
   fetchTodos();
