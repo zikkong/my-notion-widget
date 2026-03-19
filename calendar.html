@@ -47,16 +47,39 @@
       background: var(--bg);
       color: var(--txt);
       min-height: 100vh;
-      padding: 16px 16px 24px;
       display: flex;
       justify-content: center;
       transition: background 0.3s;
       border: 2px solid var(--point);
       border-radius: var(--radius);
       position: relative;
+      overflow: clip;
     }
 
-    .widget-container { width: 100%; max-width: 100%; }
+    .widget-container {
+      width: 100%;
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* 캘린더 고정 영역 */
+    .calendar-fixed {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--bg);
+      padding: 16px 16px 0;
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    /* 할일 스크롤 영역 */
+    .tasks-scroll {
+      flex: 1;
+      padding: 0 16px 24px;
+      overflow-y: auto;
+    }
 
     /* ── 헤더 ── */
     .header {
@@ -274,43 +297,46 @@
 <body>
 <div class="widget-container">
 
-  <!-- 헤더 -->
-  <div class="header">
-    <div class="month-main" id="month-label">—</div>
-    <div class="header-actions">
-      <div class="icon-btn" onclick="moveMonth(-1)">‹</div>
-      <div class="icon-btn" onclick="moveMonth(1)">›</div>
-      <div class="icon-btn" id="refresh-btn" onclick="loadMonth()">↻</div>
-      <div class="icon-btn" onclick="toggleSettings()">⚙</div>
+  <!-- 고정 영역: 헤더 + 설정 + 캘린더 -->
+  <div class="calendar-fixed">
+
+    <!-- 헤더 -->
+    <div class="header">
+      <div class="month-main" id="month-label">—</div>
+      <div class="header-actions">
+        <div class="icon-btn" onclick="moveMonth(-1)">‹</div>
+        <div class="icon-btn" onclick="moveMonth(1)">›</div>
+        <div class="icon-btn" id="refresh-btn" onclick="loadMonth()">↻</div>
+        <div class="icon-btn" onclick="toggleSettings()">⚙</div>
+      </div>
     </div>
-  </div>
 
-  <!-- 설정 패널 -->
-  <div class="settings-panel" id="settings-panel">
-    <div class="setting-row"><label>배경/포인트</label><input type="color" value="#615847" oninput="setVar('--point', this.value); setVar('--txt', this.value)" /></div>
-    <div class="setting-row"><label>카드</label><input type="color" value="#FEF8FA" oninput="setVar('--point-soft', this.value)" /></div>
-    <div class="setting-row"><label>완료</label><input type="color" value="#FDD5E7" oninput="setVar('--done-bg', this.value)" /></div>
-    <div class="setting-row"><label>체크</label><input type="color" value="#FFF4B1" oninput="setVar('--check-bg', this.value)" /></div>
-    <div class="setting-row"><label>초록</label><input type="color" value="#D3EBAD" oninput="setVar('--green-light', this.value)" /></div>
-  </div>
-
-  <!-- 캘린더 -->
-  <div class="calendar-wrap">
-    <div class="weekday-row">
-      <div class="weekday">일</div><div class="weekday">월</div><div class="weekday">화</div>
-      <div class="weekday">수</div><div class="weekday">목</div><div class="weekday">금</div>
-      <div class="weekday">토</div>
+    <!-- 설정 패널 -->
+    <div class="settings-panel" id="settings-panel">
+      <div class="setting-row"><label>배경/포인트</label><input type="color" value="#615847" oninput="setVar('--point', this.value); setVar('--txt', this.value)" /></div>
+      <div class="setting-row"><label>카드</label><input type="color" value="#FEF8FA" oninput="setVar('--point-soft', this.value)" /></div>
+      <div class="setting-row"><label>완료</label><input type="color" value="#FDD5E7" oninput="setVar('--done-bg', this.value)" /></div>
+      <div class="setting-row"><label>체크</label><input type="color" value="#FFF4B1" oninput="setVar('--check-bg', this.value)" /></div>
+      <div class="setting-row"><label>초록</label><input type="color" value="#D3EBAD" oninput="setVar('--green-light', this.value)" /></div>
     </div>
-    <div class="days-grid" id="days-grid"></div>
+
+    <!-- 캘린더 -->
+    <div class="calendar-wrap">
+      <div class="weekday-row">
+        <div class="weekday">일</div><div class="weekday">월</div><div class="weekday">화</div>
+        <div class="weekday">수</div><div class="weekday">목</div><div class="weekday">금</div>
+        <div class="weekday">토</div>
+      </div>
+      <div class="days-grid" id="days-grid"></div>
+    </div>
+
   </div>
 
-  <!-- 선택 날짜 할일 -->
-  <div id="selected-section" style="display:none">
-    <div class="selected-date-label" id="selected-label"></div>
-    <div id="task-list"></div>
-  </div>
-
-</div>
+  <!-- 스크롤 영역: 선택 날짜 할일 -->
+  <div class="tasks-scroll">
+    <div id="selected-section" style="display:none">
+      <div class="selected-date-label" id="selected-label"></div>
+      <div id="task-list"></div>
     </div>
   </div>
 
