@@ -33,6 +33,7 @@
       transition: background 0.3s;
       border: 1.5px solid #ced4da;
       border-radius: var(--radius);
+      position: relative;
     }
 
     .widget-container { width: 100%; max-width: 100%; }
@@ -44,28 +45,58 @@
       z-index: 50;
       background: var(--bg);
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding: 10px 2px;
-      margin-bottom: 12px;
+      justify-content: center;
+      text-align: center;
+      padding: 10px 2px 14px;
+      margin-bottom: 4px;
+      border-bottom: 2px solid var(--point);
+    }
+    .header-actions {
+      position: absolute;
+      right: 2px;
+      top: 10px;
     }
 
     .month-main {
       font-family: 'Freesentation', 'KoPubDotum', sans-serif;
-      font-size: 28px;
+      font-size: 32px;
       font-weight: 700;
       color: var(--txt);
       letter-spacing: -1px;
       line-height: 1;
     }
-    .month-sub {
+
+    .header-actions { display: flex; gap: 4px; align-items: center; }
+
+    /* ── 설정 패널 ── */
+    .settings-panel {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+      display: none;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .settings-panel.open { display: flex; }
+    .setting-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
       font-size: 11px;
       color: var(--txt-mute);
-      margin-top: 4px;
-      padding-left: 2px;
     }
-
-    .header-actions { display: flex; gap: 6px; align-items: center; }
+    .setting-row label { white-space: nowrap; font-weight: 700; }
+    input[type="color"] {
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      width: 30px; height: 26px;
+      padding: 2px;
+      cursor: pointer;
+      background: none;
+    }
     .icon-btn {
       background: var(--surface);
       border: none;
@@ -271,12 +302,32 @@
   <div class="header">
     <div>
       <div class="month-main" id="month-label">—</div>
-      <div class="month-sub" id="month-sub">—</div>
     </div>
     <div class="header-actions">
       <div class="icon-btn" onclick="moveMonth(-1)">‹</div>
       <div class="icon-btn" onclick="moveMonth(1)">›</div>
       <div class="icon-btn" id="refresh-btn" onclick="loadMonth()">↻</div>
+      <div class="icon-btn" onclick="toggleSettings()">⚙</div>
+    </div>
+  </div>
+
+  <!-- 설정 패널 -->
+  <div class="settings-panel" id="settings-panel">
+    <div class="setting-row">
+      <label>배경</label>
+      <input type="color" value="#f8f9fa" oninput="setVar('--bg', this.value)" />
+    </div>
+    <div class="setting-row">
+      <label>카드</label>
+      <input type="color" value="#ffffff" oninput="setVar('--surface', this.value)" />
+    </div>
+    <div class="setting-row">
+      <label>포인트</label>
+      <input type="color" value="#5c7cfa" oninput="setVar('--point', this.value)" />
+    </div>
+    <div class="setting-row">
+      <label>글자</label>
+      <input type="color" value="#212529" oninput="setVar('--txt', this.value)" />
     </div>
   </div>
 
@@ -389,10 +440,13 @@
     if (selectedDate) renderTasks(selectedDate);
   }
 
+  // ── 디자인 설정 ──
+  function setVar(prop, val) { document.documentElement.style.setProperty(prop, val); }
+  function toggleSettings() { document.getElementById('settings-panel').classList.toggle('open'); }
+
   // ── 캘린더 렌더링 ──
   function updateHeader() {
-    document.getElementById('month-label').textContent = `${curYear % 100}.${pad(curMonth+1)}`;
-    document.getElementById('month-sub').textContent   = `${curYear}년 ${curMonth+1}월`;
+    document.getElementById('month-label').textContent = `${curYear}년 ${curMonth+1}월`;
   }
 
   function renderCalendar() {
