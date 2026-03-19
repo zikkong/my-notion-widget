@@ -28,7 +28,7 @@
       background: var(--bg);
       color: var(--txt);
       min-height: 100vh;
-      padding: 30px 20px 60px;
+      padding: 30px 20px 100px;
       display: flex;
       justify-content: center;
       transition: background 0.3s, color 0.3s;
@@ -108,13 +108,15 @@
       background: none;
     }
 
-    /* ── 진행률 ── */
+    /* ── 진행률 (하단 고정) ── */
     .progress-wrap {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
       background: var(--surface);
-      padding: 16px 18px;
-      border-radius: var(--radius);
-      margin-bottom: 14px;
-      box-shadow: var(--shadow);
+      padding: 14px 24px 20px;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+      z-index: 100;
+      border-radius: 20px 20px 0 0;
     }
     .progress-meta {
       display: flex;
