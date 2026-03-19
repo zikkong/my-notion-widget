@@ -329,7 +329,25 @@
   updateDateHeader();
 
   // ── 디자인 ──
-  function setVar(prop, val) { document.documentElement.style.setProperty(prop, val); }
+  function setVar(prop, val) {
+    document.documentElement.style.setProperty(prop, val);
+    const saved = JSON.parse(localStorage.getItem('widget-colors') || '{}');
+    saved[prop] = val;
+    localStorage.setItem('widget-colors', JSON.stringify(saved));
+  }
+
+  // 저장된 색상 불러오기
+  (function loadSavedColors() {
+    const saved = JSON.parse(localStorage.getItem('widget-colors') || '{}');
+    Object.entries(saved).forEach(([prop, val]) => {
+      document.documentElement.style.setProperty(prop, val);
+    });
+    // color input 값도 동기화
+    document.querySelectorAll('input[type="color"]').forEach(input => {
+      const prop = input.getAttribute('oninput')?.match(/'(--[^']+)'/)?.[1];
+      if (prop && saved[prop]) input.value = saved[prop];
+    });
+  })();
   function toggleSettings() { document.getElementById('settings-panel').classList.toggle('open'); }
 
   // ── 데이터 불러오기 ──
