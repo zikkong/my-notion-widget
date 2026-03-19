@@ -66,6 +66,9 @@
 
     /* ── 헤더 ── */
     .header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
       padding: 28px 24px 8px;
       flex-shrink: 0;
       display: flex;
@@ -194,7 +197,7 @@
 
     .todo-title {
       font-size: 14px;
-      font-weight: 400;
+      font-weight: 300;
       color: #3d2f22;
       white-space: nowrap;
       overflow: hidden;
@@ -208,7 +211,9 @@
     /* ── 하단 초록 줄무늬 + 진행률 ── */
     .bottom-area {
       flex-shrink: 0;
-      position: relative;
+      position: sticky;
+      bottom: 0;
+      z-index: 50;
       padding: 18px 24px 24px;
       /* 세로 스트라이프 */
       background: repeating-linear-gradient(
