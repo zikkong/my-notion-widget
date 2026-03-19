@@ -68,7 +68,7 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 10px 2px 14px;
+      padding: 6px 2px 8px;
       margin-bottom: 4px;
       border-bottom: none;
       border-radius: var(--radius) var(--radius) 0 0;
@@ -93,7 +93,7 @@
     }
 
     .icon-btn {
-      background: var(--point-soft);
+      background: #FDD5E7;
       border: 1px solid var(--border);
       border-radius: 8px;
       width: 28px; height: 28px;
@@ -109,7 +109,7 @@
 
     /* ── 설정 패널 ── */
     .settings-panel {
-      background: var(--point-soft);
+      background: #FDD5E7;
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 10px 14px;
@@ -142,9 +142,9 @@
     .weekday-row {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      padding: 12px 12px 8px;
+      padding: 6px 12px 6px;
       border-bottom: 1px solid var(--border);
-      background: var(--point-soft);
+      background: #FDD5E7;
     }
     .weekday {
       text-align: center;
@@ -173,7 +173,7 @@
       transition: background .15s;
       padding: 2px;
     }
-    .day-cell:hover { background: var(--point-soft); }
+    .day-cell:hover { background: #FDD5E7; }
     .day-cell.empty { cursor: default; pointer-events: none; }
     .day-cell.today .day-num {
       background: var(--point);
@@ -182,7 +182,7 @@
       width: 26px; height: 26px;
       display: flex; align-items: center; justify-content: center;
     }
-    .day-cell.selected { background: var(--point-soft); border: 1.5px solid var(--point); }
+    .day-cell.selected { background: #FDD5E7; border: 1.5px solid var(--point); }
     .day-cell.sunday .day-num  { color: #e07070; }
     .day-cell.saturday .day-num { color: #7090c0; }
     .day-cell.today.sunday .day-num,
@@ -208,7 +208,7 @@
     #task-list { display: flex; flex-direction: column; gap: 6px; }
 
     .todo-item {
-      background: var(--point-soft);
+      background: #FDD5E7;
       border: 1.5px solid var(--border);
       border-radius: 10px;
       padding: 8px 12px;
