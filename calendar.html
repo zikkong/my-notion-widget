@@ -175,9 +175,15 @@
     }
     .day-cell:hover { background: #FEEAF1; }
     .day-cell.empty { cursor: default; pointer-events: none; }
+    .day-cell.today {
+      position: relative;
+    }
     .day-cell.today .day-num {
       position: relative;
+      z-index: 1;
       color: #fff;
+      width: 22px;
+      text-align: center;
     }
     .day-cell.today .day-num::before {
       content: '';
