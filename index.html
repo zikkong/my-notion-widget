@@ -1,130 +1,463 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notion 업무 로그 위젯</title>
-    <style>
-        :root { --bg: #ffffff; --point: #007bff; --txt: #333; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--txt); padding: 20px; margin: 0; transition: 0.3s; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--point); padding-bottom: 10px; }
-        .config-panel { display: none; background: rgba(0,0,0,0.05); padding: 15px; border-radius: 10px; margin-bottom: 20px; font-size: 13px; }
-        .todo-item { display: flex; align-items: flex-start; margin-bottom: 15px; padding: 12px; background: rgba(0,0,0,0.02); border-radius: 8px; border: 1px solid rgba(0,0,0,0.05); }
-        .todo-checkbox { width: 22px; height: 22px; margin-right: 15px; cursor: pointer; accent-color: var(--point); }
-        .todo-info { flex: 1; }
-        .todo-content { font-weight: bold; font-size: 16px; margin-bottom: 6px; }
-        .tag-container { display: flex; flex-wrap: wrap; gap: 5px; }
-        .tag { font-size: 11px; padding: 3px 8px; border-radius: 5px; background: var(--point); color: white; font-weight: 500; }
-        .completed { text-decoration: line-through; opacity: 0.5; }
-        #error-display { display: none; margin-top: 20px; padding: 15px; background: #fff5f5; border: 1px solid #ffcccc; color: #cc0000; border-radius: 8px; font-size: 13px; white-space: pre-wrap; }
-        button { cursor: pointer; border: none; background: none; font-size: 18px; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Today's Tasks</title>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── CSS 변수 (디자인 커스텀용) ── */
+    :root {
+      --bg:        #f7f5f0;
+      --surface:   #ffffff;
+      --border:    #e5e1d8;
+      --point:     #4f46e5;
+      --point-soft:#ede9fe;
+      --txt:       #1a1a1a;
+      --txt-mute:  #888;
+      --tag-bg:    var(--point);
+      --tag-txt:   #ffffff;
+      --check-color: var(--point);
+      --radius:    14px;
+      --font-body: 'Gowun Dodum', sans-serif;
+      --font-mono: 'Space Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--txt);
+      min-height: 100vh;
+      padding: 28px 20px 60px;
+      transition: background 0.4s, color 0.4s;
+    }
+
+    /* ── 헤더 ── */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+    }
+
+    .date-block {}
+    .date-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--txt-mute);
+      margin-bottom: 4px;
+    }
+    .date-main {
+      font-family: var(--font-mono);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--txt);
+      line-height: 1;
+    }
+
+    .header-actions { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+    .icon-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-size: 15px;
+      transition: background .2s, transform .15s;
+    }
+    .icon-btn:hover { background: var(--point-soft); transform: scale(1.08); }
+    .icon-btn.spinning { animation: spin .6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── 설정 패널 ── */
+    .settings-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 20px;
+      display: none;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .settings-panel.open { display: flex; }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--txt-mute);
+    }
+    .setting-row label { white-space: nowrap; }
+    input[type="color"] {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      width: 32px; height: 28px;
+      padding: 2px;
+      cursor: pointer;
+      background: none;
+    }
+
+    /* ── 진행률 바 ── */
+    .progress-wrap {
+      margin-bottom: 20px;
+    }
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--txt-mute);
+      margin-bottom: 6px;
+    }
+    .progress-bar-bg {
+      height: 6px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--point);
+      border-radius: 99px;
+      transition: width 0.5s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ── 할 일 목록 ── */
+    #todo-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .todo-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      transition: opacity .3s, border-color .2s;
+      animation: fadeUp .3s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .todo-item.done { opacity: .45; }
+    .todo-item:hover { border-color: var(--point); }
+
+    /* 커스텀 체크박스 */
+    .cb-wrap { position: relative; flex-shrink: 0; width: 22px; height: 22px; margin-top: 2px; }
+    .cb-wrap input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .cb-box {
+      width: 22px; height: 22px;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: background .2s, border-color .2s;
+      background: transparent;
+    }
+    .cb-wrap input:checked + .cb-box {
+      background: var(--check-color);
+      border-color: var(--check-color);
+    }
+    .cb-box svg { display: none; }
+    .cb-wrap input:checked + .cb-box svg { display: block; }
+
+    .todo-body { flex: 1; min-width: 0; }
+    .todo-title {
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.4;
+      margin-bottom: 7px;
+      transition: text-decoration .2s;
+    }
+    .todo-item.done .todo-title { text-decoration: line-through; }
+
+    .tags { display: flex; flex-wrap: wrap; gap: 5px; }
+    .tag {
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 99px;
+      background: var(--tag-bg);
+      color: var(--tag-txt);
+      font-weight: 600;
+      letter-spacing: .03em;
+    }
+
+    /* ── 빈 상태 / 에러 ── */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--txt-mute);
+      font-size: 14px;
+      line-height: 1.8;
+    }
+    .empty-state .emoji { font-size: 32px; margin-bottom: 10px; }
+
+    .error-box {
+      background: #fff5f5;
+      border: 1px solid #fecaca;
+      border-radius: var(--radius);
+      padding: 16px;
+      color: #b91c1c;
+      font-size: 13px;
+      white-space: pre-wrap;
+      line-height: 1.7;
+    }
+
+    /* ── 업데이트 토스트 ── */
+    #toast {
+      position: fixed;
+      bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(60px);
+      background: var(--txt);
+      color: var(--bg);
+      padding: 10px 18px;
+      border-radius: 99px;
+      font-size: 13px;
+      opacity: 0;
+      transition: opacity .3s, transform .3s;
+      pointer-events: none;
+      z-index: 999;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
 </head>
 <body>
 
+<!-- 헤더 -->
 <div class="header">
-    <div id="today-date" style="font-size: 18px; font-weight: 800;">날짜 확인 중...</div>
-    <div>
-        <button onclick="fetchTodos()">🔄</button>
-        <button onclick="toggleConfig()">⚙️</button>
-    </div>
+  <div class="date-block">
+    <div class="date-label">Today</div>
+    <div class="date-main" id="today-date">—</div>
+  </div>
+  <div class="header-actions">
+    <div class="icon-btn" id="refresh-btn" onclick="fetchTodos()" title="새로고침">↻</div>
+    <div class="icon-btn" onclick="toggleSettings()" title="디자인 설정">⚙</div>
+  </div>
 </div>
 
-<div id="config-panel" class="config-panel">
-    <strong>🎨 디자인 커스텀</strong><br><br>
-    배경색: <input type="color" onchange="updateStyle('--bg', this.value)" value="#ffffff"> 
-    포인트: <input type="color" onchange="updateStyle('--point', this.value)" value="#007bff"> 
-    글자색: <input type="color" onchange="updateStyle('--txt', this.value)" value="#333333">
+<!-- 설정 패널 -->
+<div class="settings-panel" id="settings-panel">
+  <div class="setting-row">
+    <label>배경색</label>
+    <input type="color" value="#f7f5f0" oninput="setVar('--bg', this.value)" />
+  </div>
+  <div class="setting-row">
+    <label>카드색</label>
+    <input type="color" value="#ffffff" oninput="setVar('--surface', this.value)" />
+  </div>
+  <div class="setting-row">
+    <label>포인트</label>
+    <input type="color" value="#4f46e5" oninput="setVar('--point', this.value); setVar('--tag-bg', this.value); setVar('--check-color', this.value);" />
+  </div>
+  <div class="setting-row">
+    <label>글자색</label>
+    <input type="color" value="#1a1a1a" oninput="setVar('--txt', this.value)" />
+  </div>
 </div>
 
-<div id="todo-list">데이터를 불러오고 있습니다...</div>
-<div id="error-display"></div>
+<!-- 진행률 -->
+<div class="progress-wrap" id="progress-wrap" style="display:none">
+  <div class="progress-meta">
+    <span id="progress-label">0 / 0 완료</span>
+    <span id="progress-pct">0%</span>
+  </div>
+  <div class="progress-bar-bg">
+    <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+</div>
+
+<!-- 할 일 목록 -->
+<div id="todo-list">
+  <div class="empty-state">
+    <div class="emoji">⏳</div>
+    데이터를 불러오는 중...
+  </div>
+</div>
+
+<!-- 토스트 -->
+<div id="toast"></div>
 
 <script>
-    // 1. 정보를 정확히 입력하세요
-    const TOKEN = "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"; // 스크린샷의 전체 토큰 복사
-    const DB_ID = "317aa4316f2f80fe9e95e66e0d1e846e"; 
-    const PROXY = "https://cors-anywhere.herokuapp.com/";
+  // ── 오늘 날짜 표시 ──────────────────────────────────────────
+  const today = new Date();
+  const yyyy  = today.getFullYear();
+  const mm    = String(today.getMonth() + 1).padStart(2, '0');
+  const dd    = String(today.getDate()).padStart(2, '0');
+  const todayStr = `${yyyy}-${mm}-${dd}`;
 
-    function updateStyle(prop, val) { document.documentElement.style.setProperty(prop, val); }
-    function toggleConfig() { const p = document.getElementById('config-panel'); p.style.display = p.style.display === 'block' ? 'none' : 'block'; }
+  const DAYS = ['일','월','화','수','목','금','토'];
+  document.getElementById('today-date').textContent =
+    `${yyyy}.${mm}.${dd} (${DAYS[today.getDay()]})`;
 
-    async function fetchTodos() {
-        const listDiv = document.getElementById("todo-list");
-        const errDiv = document.getElementById("error-display");
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('today-date').innerText = "📅 " + today;
+  // ── 디자인 변수 ──────────────────────────────────────────────
+  function setVar(prop, val) {
+    document.documentElement.style.setProperty(prop, val);
+  }
+  function toggleSettings() {
+    document.getElementById('settings-panel').classList.toggle('open');
+  }
 
-        try {
-            const response = await fetch(`${PROXY}https://api.notion.com/v1/databases/${DB_ID}/query`, {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${TOKEN.trim()}`,
-                    "Notion-Version": "2022-06-28",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    filter: { property: "날짜", date: { equals: today } }
-                })
-            });
+  // ── 데이터 불러오기 ──────────────────────────────────────────
+  async function fetchTodos() {
+    const btn = document.getElementById('refresh-btn');
+    btn.classList.add('spinning');
 
-            const data = await response.json();
+    try {
+      const res = await fetch('/api/notion?action=query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filter: {
+            property: '날짜',
+            date: { equals: todayStr }
+          },
+          sorts: [{ timestamp: 'created_time', direction: 'ascending' }]
+        })
+      });
 
-            if (!response.ok) {
-                errDiv.style.display = "block";
-                errDiv.innerText = `[에러 발생]\n코드: ${data.code}\n메시지: ${data.message}\n\n팁: 'Invalid Token'이 뜬다면 토큰 복사가 잘못되었거나 노션 페이지 연결을 다시 확인하세요.`;
-                return;
-            }
+      const data = await res.json();
 
-            render(data.results);
-            errDiv.style.display = "none";
-        } catch (e) {
-            errDiv.style.display = "block";
-            errDiv.innerText = "네트워크 에러: CORS 프록시 승인이 필요할 수 있습니다.\nhttps://cors-anywhere.herokuapp.com/corsdemo 접속 후 버튼을 누르세요.";
-        }
+      if (!res.ok) {
+        showError(data.error || JSON.stringify(data, null, 2));
+        return;
+      }
+
+      render(data.results || []);
+    } catch (e) {
+      showError('네트워크 에러: ' + e.message);
+    } finally {
+      btn.classList.remove('spinning');
+    }
+  }
+
+  // ── 렌더링 ──────────────────────────────────────────────────
+  function render(items) {
+    const list = document.getElementById('todo-list');
+    const progressWrap = document.getElementById('progress-wrap');
+
+    if (items.length === 0) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <div class="emoji">✨</div>
+          오늘 등록된 할 일이 없습니다.<br>
+          노션 데이터베이스에 오늘 날짜로 항목을 추가해보세요.
+        </div>`;
+      progressWrap.style.display = 'none';
+      return;
     }
 
-    function render(items) {
-        const listDiv = document.getElementById("todo-list");
-        if (items.length === 0) {
-            listDiv.innerHTML = "<p style='opacity:0.6;'>오늘 등록된 업무가 없습니다.</p>";
-            return;
-        }
+    // 진행률
+    const doneCount = items.filter(i => i.properties?.['완']?.checkbox).length;
+    const pct = Math.round((doneCount / items.length) * 100);
+    progressWrap.style.display = 'block';
+    document.getElementById('progress-label').textContent = `${doneCount} / ${items.length} 완료`;
+    document.getElementById('progress-pct').textContent = `${pct}%`;
+    document.getElementById('progress-fill').style.width = pct + '%';
 
-        listDiv.innerHTML = "";
-        items.forEach(item => {
-            const p = item.properties;
-            const content = p["업무 내용"]?.title?.[0]?.plain_text || "내용 없음"; // 제목
-            const tags = p["업무"]?.multi_select || []; // 다중선택
-            const done = p["완"]?.checkbox || false; // 체크박스
+    // 목록
+    list.innerHTML = '';
+    items.forEach((item, idx) => {
+      const p       = item.properties;
+      const content = p['업무 내용']?.title?.[0]?.plain_text || '(내용 없음)';
+      const tags    = p['업무']?.multi_select || [];
+      const done    = p['완']?.checkbox || false;
+      const id      = item.id;
 
-            const row = document.createElement("div");
-            row.className = "todo-item";
-            row.innerHTML = `
-                <input type="checkbox" class="todo-checkbox" ${done ? 'checked' : ''} onchange="updateTodo('${item.id}', this.checked)">
-                <div class="todo-info">
-                    <div class="todo-content ${done ? 'completed' : ''}">${content}</div>
-                    <div class="tag-container">${tags.map(t => `<span class="tag">${t.name}</span>`).join('')}</div>
-                </div>
-            `;
-            listDiv.appendChild(row);
-        });
+      const div = document.createElement('div');
+      div.className = 'todo-item' + (done ? ' done' : '');
+      div.style.animationDelay = (idx * 0.05) + 's';
+      div.innerHTML = `
+        <label class="cb-wrap">
+          <input type="checkbox" ${done ? 'checked' : ''} onchange="updateTodo('${id}', this.checked, this)" />
+          <div class="cb-box">
+            <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+              <path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </label>
+        <div class="todo-body">
+          <div class="todo-title">${escapeHtml(content)}</div>
+          <div class="tags">${tags.map(t => `<span class="tag">${escapeHtml(t.name)}</span>`).join('')}</div>
+        </div>`;
+      list.appendChild(div);
+    });
+  }
+
+  // ── 체크박스 업데이트 ────────────────────────────────────────
+  async function updateTodo(pageId, checked, cbEl) {
+    // 낙관적 UI 업데이트
+    const item = cbEl.closest('.todo-item');
+    if (checked) item.classList.add('done');
+    else item.classList.remove('done');
+
+    try {
+      const res = await fetch(`/api/notion?pageId=${pageId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ properties: { '완': { checkbox: checked } } })
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        showToast('업데이트 실패: ' + (data.error || '알 수 없는 오류'));
+        // 롤백
+        cbEl.checked = !checked;
+        if (!checked) item.classList.add('done');
+        else item.classList.remove('done');
+        return;
+      }
+
+      showToast(checked ? '✅ 완료 처리됨' : '↩ 미완료로 변경됨');
+      // 진행률만 다시 계산
+      updateProgress();
+    } catch (e) {
+      showToast('네트워크 오류: ' + e.message);
     }
+  }
 
-    async function updateTodo(pageId, checked) {
-        await fetch(`${PROXY}https://api.notion.com/v1/pages/${pageId}`, {
-            method: "PATCH",
-            headers: {
-                "Authorization": `Bearer ${TOKEN.trim()}`,
-                "Notion-Version": "2022-06-28",
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ properties: { "완": { checkbox: checked } } })
-        });
-        fetchTodos();
-    }
+  function updateProgress() {
+    const items = document.querySelectorAll('.todo-item');
+    const done  = document.querySelectorAll('.todo-item.done');
+    const pct   = items.length ? Math.round((done.length / items.length) * 100) : 0;
+    document.getElementById('progress-label').textContent = `${done.length} / ${items.length} 완료`;
+    document.getElementById('progress-pct').textContent = pct + '%';
+    document.getElementById('progress-fill').style.width = pct + '%';
+  }
 
-    fetchTodos();
+  // ── 에러 표시 ────────────────────────────────────────────────
+  function showError(msg) {
+    document.getElementById('todo-list').innerHTML =
+      `<div class="error-box">⚠️ ${msg}</div>`;
+    document.getElementById('progress-wrap').style.display = 'none';
+  }
+
+  // ── 토스트 ──────────────────────────────────────────────────
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  // ── XSS 방지 ────────────────────────────────────────────────
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── 초기 로드 ────────────────────────────────────────────────
+  fetchTodos();
 </script>
 </body>
 </html>
