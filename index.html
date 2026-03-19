@@ -4,238 +4,268 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Today's Tasks</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sun-typeface/KoPubDotum@latest/KoPubDotum.css">
-  <link href="https://fonts.googleapis.com/css2?family=Freesentation:wght@700&display=swap" rel="stylesheet">
   <style>
+    @font-face {
+      font-family: 'SBAggroOTF';
+      src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroL.woff') format('woff');
+      font-weight: 300;
+    }
+    @font-face {
+      font-family: 'SBAggroOTF';
+      src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroM.woff') format('woff');
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: 'SBAggroOTF';
+      src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroB.woff') format('woff');
+      font-weight: 700;
+    }
+
     :root {
-      --bg:       #f8f9fa;
-      --surface:  #ffffff;
-      --border:   #f1f3f5;
-      --point:    #5c7cfa;
-      --tag-bg:   #343a40;
-      --tag-txt:  #ffffff;
-      --txt:      #212529;
-      --txt-mute: #adb5bd;
-      --radius:   20px;
-      --shadow:   0 8px 20px rgba(0,0,0,0.06);
-      --font-body: 'KoPubDotum', sans-serif;
+      --border-color:  #615847;
+      --txt:           #615847;
+      --txt-mute:      #a08c78;
+      --todo-bg:       #FEF8FA;
+      --done-bg:       #FDD5E7;
+      --check-bg:      #FFF4B1;
+      --progress-fill: #FDD5E7;
+      --green-light:   #D3EBAD;
+      --green-dark:    #C2DF98;
+      --radius-outer:  18px;
+      --radius-inner:  10px;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    /* 스크롤바 숨기기 */
     ::-webkit-scrollbar { display: none; }
     * { -ms-overflow-style: none; scrollbar-width: none; }
 
     body {
-      font-family: var(--font-body);
-      background: var(--bg);
-      color: var(--txt);
-      min-height: 100vh;
-      padding: 20px 14px 90px;
+      font-family: 'SBAggroOTF', sans-serif;
+      background: #1a1a1a;
       display: flex;
       justify-content: center;
-      transition: background 0.3s, color 0.3s;
-      border: 1.5px solid #ced4da;
-      border-radius: var(--radius);
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 0;
+      margin: 0;
     }
 
-    .widget-container { width: 100%; max-width: 300px; }
+    /* 바깥 래퍼 - 테두리 밖으로 절대 삐져나오지 않음 */
+    .screen-wrapper {
+      width: 100%;
+      max-width: 420px;
+      min-height: 100vh;
+      background: #ffffff;
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-outer);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
 
     /* ── 헤더 ── */
     .header {
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      background: var(--bg);
+      padding: 28px 24px 8px;
+      flex-shrink: 0;
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      padding: 10px 2px 10px;
+      align-items: flex-start;
+      background: #fff;
     }
 
     .date-main {
-      font-family: 'Freesentation', 'KoPubDotum', sans-serif;
-      font-size: 28px;
+      font-family: 'SBAggroOTF', sans-serif;
+      font-size: 36px;
       font-weight: 700;
       color: var(--txt);
-      letter-spacing: -1.5px;
       line-height: 1;
+      letter-spacing: -1px;
     }
-
     .date-sub {
-      font-size: 11px;
-      color: var(--txt-mute);
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--txt);
       margin-top: 5px;
-      padding-left: 2px;
     }
 
-    .header-actions { display: flex; gap: 8px; align-items: center; }
-
+    .header-actions {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      margin-top: 6px;
+    }
     .icon-btn {
-      background: var(--surface);
-      border: none;
-      border-radius: 50%;
-      width: 34px; height: 34px;
+      background: var(--todo-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      width: 28px; height: 28px;
       cursor: pointer;
-      box-shadow: var(--shadow);
       display: flex; align-items: center; justify-content: center;
-      font-size: 16px;
-      transition: transform .2s;
+      font-size: 13px;
+      color: var(--txt);
+      transition: all 0.15s;
+      font-family: 'SBAggroOTF', sans-serif;
     }
-    .icon-btn:active { transform: scale(0.88); }
+    .icon-btn:active { transform: scale(0.9); }
     .icon-btn.spinning { animation: spin .6s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ── 설정 패널 ── */
     .settings-panel {
-      background: var(--surface);
-      border-radius: var(--radius);
-      padding: 12px 14px;
-      margin-bottom: 10px;
-      box-shadow: var(--shadow);
+      background: var(--todo-bg);
+      border-top: 1px solid #e8ddd5;
+      border-bottom: 1px solid #e8ddd5;
+      padding: 10px 24px;
       display: none;
       flex-wrap: wrap;
-      gap: 14px;
+      gap: 10px;
+      flex-shrink: 0;
     }
     .settings-panel.open { display: flex; }
-
-    .setting-row {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      font-size: 11px;
-      color: var(--txt-mute);
-    }
-    .setting-row label { white-space: nowrap; font-weight: 700; }
+    .setting-row { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 300; color: var(--txt-mute); }
+    .setting-row label { white-space: nowrap; }
     input[type="color"] {
-      border: 1px solid #dee2e6;
-      border-radius: 6px;
-      width: 30px; height: 26px;
-      padding: 2px;
-      cursor: pointer;
-      background: none;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      width: 26px; height: 22px;
+      padding: 1px; cursor: pointer; background: none;
     }
 
-    /* ── 진행률 (하단 고정) ── */
-    .progress-wrap {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: var(--surface);
-      padding: 10px 18px 16px;
-      box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
-      z-index: 100;
-      border-radius: 28px 28px 0 0;
-    }
-    .progress-meta {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--txt-mute);
-      margin-bottom: 8px;
-    }
-    .progress-bar-bg {
-      height: 6px;
-      background: #e9ecef;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .progress-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #748ffc, #5c7cfa);
-      border-radius: 10px;
-      transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    /* ── 할 일 목록 영역 ── */
+    .content-area {
+      flex: 1;
+      padding: 16px 20px 100px;
+      overflow-y: auto;
+      background: #fff;
     }
 
-    /* ── 할 일 목록 ── */
     #todo-list { display: flex; flex-direction: column; gap: 8px; }
 
     .todo-item {
-      background: var(--surface);
-      border-radius: var(--radius);
-      padding: 10px 14px;
+      background: var(--todo-bg);
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-inner);
+      padding: 12px 14px;
       display: flex;
       align-items: center;
       gap: 12px;
-      box-shadow: var(--shadow);
-      transition: all 0.3s;
-      animation: fadeUp .3s ease both;
+      animation: fadeUp .25s ease both;
+      transition: background 0.2s;
     }
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(8px); }
+      from { opacity: 0; transform: translateY(6px); }
       to   { opacity: 1; transform: translateY(0); }
     }
     .todo-item.done {
-      opacity: 0.55;
-      box-shadow: none;
-      background: #f1f3f5;
+      background: var(--done-bg);
     }
 
     /* 체크박스 */
     .cb-wrap { position: relative; width: 22px; height: 22px; flex-shrink: 0; }
-    .cb-wrap input { opacity: 0; position: absolute; width: 0; height: 0; }
+    .cb-wrap input { opacity: 0; width: 0; height: 0; position: absolute; }
     .cb-box {
       width: 22px; height: 22px;
-      border: 2px solid #dee2e6;
-      border-radius: 8px;
+      border: 1.5px solid var(--border-color);
+      border-radius: 5px;
+      background: #fff;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer;
       transition: all 0.2s;
     }
     .cb-wrap input:checked + .cb-box {
-      background: var(--point);
-      border-color: var(--point);
+      background: var(--check-bg);
+      border-color: var(--border-color);
     }
-    .cb-box svg { width: 11px; display: none; }
+    .cb-box svg { width: 13px; display: none; }
     .cb-wrap input:checked + .cb-box svg { display: block; }
 
-    /* 한 줄 레이아웃 */
     .todo-body { flex: 1; min-width: 0; }
-    .todo-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .todo-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 
     .tag {
-      font-size: 11px;
-      padding: 3px 10px;
+      font-size: 10px;
+      font-weight: 400;
+      padding: 2px 8px;
       border-radius: 8px;
-      background: var(--tag-bg);
       color: #fff;
-      font-weight: 700;
       flex-shrink: 0;
-      letter-spacing: -0.2px;
     }
 
     .todo-title {
-      font-size: 13px;
-      font-weight: 500;
-      color: #495057;
+      font-size: 14px;
+      font-weight: 300;
+      color: var(--txt);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .todo-item.done .todo-title { text-decoration: line-through; color: var(--txt-mute); }
+    .todo-item.done .todo-title {
+      text-decoration: line-through;
+      color: var(--txt-mute);
+    }
+
+    /* ── 하단 초록 줄무늬 + 진행률 ── */
+    .bottom-area {
+      flex-shrink: 0;
+      position: relative;
+      padding: 14px 24px 20px;
+      /* 세로 스트라이프 */
+      background: repeating-linear-gradient(
+        to right,
+        var(--green-light) 0px,
+        var(--green-light) 18px,
+        var(--green-dark) 18px,
+        var(--green-dark) 36px
+      );
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 300;
+      color: var(--txt);
+      margin-bottom: 7px;
+      opacity: 0.8;
+    }
+
+    .progress-bar-bg {
+      height: 14px;
+      background: #fff;
+      border: 1.5px solid var(--border-color);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--progress-fill);
+      border-radius: 99px;
+      transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .progress-bar-fill.done-all { background: var(--green-light); }
 
     /* 토스트 */
     #toast {
       position: fixed;
-      bottom: 30px; left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background: var(--tag-bg);
+      bottom: 20px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--border-color);
       color: #fff;
-      padding: 10px 20px;
-      border-radius: 30px;
-      font-size: 13px;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 300;
       transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       pointer-events: none;
       z-index: 999;
+      font-family: 'SBAggroOTF', sans-serif;
     }
     #toast.show { transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
-<div class="widget-container">
+<div class="screen-wrapper">
 
   <!-- 헤더 -->
   <div class="header">
@@ -254,31 +284,38 @@
   <!-- 설정 패널 -->
   <div class="settings-panel" id="settings-panel">
     <div class="setting-row">
-      <label>배경</label>
-      <input type="color" value="#f8f9fa" oninput="setVar('--bg', this.value)" />
+      <label>테두리/글자</label>
+      <input type="color" value="#615847" oninput="setVar('--border-color', this.value); setVar('--txt', this.value)" />
     </div>
     <div class="setting-row">
-      <label>카드</label>
-      <input type="color" value="#ffffff" oninput="setVar('--surface', this.value)" />
+      <label>미완료</label>
+      <input type="color" value="#FEF8FA" oninput="setVar('--todo-bg', this.value)" />
     </div>
     <div class="setting-row">
-      <label>포인트</label>
-      <input type="color" value="#5c7cfa" oninput="setVar('--point', this.value)" />
+      <label>완료</label>
+      <input type="color" value="#FDD5E7" oninput="setVar('--done-bg', this.value); setVar('--progress-fill', this.value)" />
     </div>
     <div class="setting-row">
-      <label>태그</label>
-      <input type="color" value="#343a40" oninput="setVar('--tag-bg', this.value)" />
+      <label>체크</label>
+      <input type="color" value="#FFF4B1" oninput="setVar('--check-bg', this.value)" />
     </div>
     <div class="setting-row">
-      <label>글자</label>
-      <input type="color" value="#212529" oninput="setVar('--txt', this.value)" />
+      <label>초록</label>
+      <input type="color" value="#D3EBAD" oninput="setVar('--green-light', this.value)" />
     </div>
   </div>
 
-  <!-- 진행률 -->
-  <div class="progress-wrap" id="progress-wrap" style="display:none">
+  <!-- 할 일 목록 -->
+  <div class="content-area">
+    <div id="todo-list">
+      <div style="text-align:center;padding:40px;color:#a08c78;font-size:13px;font-weight:300;">불러오는 중...</div>
+    </div>
+  </div>
+
+  <!-- 하단 초록 줄무늬 + 진행률 -->
+  <div class="bottom-area" id="progress-wrap" style="display:none">
     <div class="progress-meta">
-      <span id="progress-label">Task Done</span>
+      <span id="progress-label">0 / 0 완료</span>
       <span id="progress-pct">0%</span>
     </div>
     <div class="progress-bar-bg">
@@ -286,38 +323,25 @@
     </div>
   </div>
 
-  <!-- 할 일 목록 -->
-  <div id="todo-list">
-    <div style="text-align:center; padding:40px; color:#adb5bd; font-size:14px;">불러오는 중...</div>
-  </div>
-
 </div>
 <div id="toast"></div>
 
 <script>
-  // ── 날짜 상태 ──
   const realToday = new Date();
   const DAYS = ['일','월','화','수','목','금','토'];
-  let viewDate = new Date(realToday); // 현재 보고 있는 날짜
+  let viewDate = new Date(realToday);
 
   function pad(n) { return String(n).padStart(2, '0'); }
-
-  function getDateStr(date) {
-    return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
-  }
-
-  function isToday(date) {
-    return getDateStr(date) === getDateStr(realToday);
-  }
+  function getDateStr(d) { return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+  function isToday(d) { return getDateStr(d) === getDateStr(realToday); }
 
   function updateDateHeader() {
     const m = viewDate.getMonth() + 1;
     const d = viewDate.getDate();
     const y = viewDate.getFullYear();
     document.getElementById('today-date').textContent = `${pad(m)}.${pad(d)}`;
-    const label = isToday(viewDate) ? '오늘' : '';
     document.getElementById('today-sub').textContent =
-      `${y}년 ${m}월 ${d}일 (${DAYS[viewDate.getDay()]})${label ? ' · ' + label : ''}`;
+      `${y}년 ${m}월 ${d}일 (${DAYS[viewDate.getDay()]})${isToday(viewDate) ? '  오늘' : ''}`;
   }
 
   function moveDate(dir) {
@@ -328,29 +352,30 @@
 
   updateDateHeader();
 
-  // ── 디자인 ──
   function setVar(prop, val) {
     document.documentElement.style.setProperty(prop, val);
-    const saved = JSON.parse(localStorage.getItem('widget-colors') || '{}');
+    const saved = JSON.parse(localStorage.getItem('widget-colors-todo') || '{}');
     saved[prop] = val;
-    localStorage.setItem('widget-colors', JSON.stringify(saved));
+    localStorage.setItem('widget-colors-todo', JSON.stringify(saved));
   }
+  function toggleSettings() { document.getElementById('settings-panel').classList.toggle('open'); }
 
-  // 저장된 색상 불러오기
   (function loadSavedColors() {
-    const saved = JSON.parse(localStorage.getItem('widget-colors') || '{}');
-    Object.entries(saved).forEach(([prop, val]) => {
-      document.documentElement.style.setProperty(prop, val);
-    });
-    // color input 값도 동기화
+    const saved = JSON.parse(localStorage.getItem('widget-colors-todo') || '{}');
+    Object.entries(saved).forEach(([prop, val]) => document.documentElement.style.setProperty(prop, val));
     document.querySelectorAll('input[type="color"]').forEach(input => {
       const prop = input.getAttribute('oninput')?.match(/'(--[^']+)'/)?.[1];
       if (prop && saved[prop]) input.value = saved[prop];
     });
   })();
-  function toggleSettings() { document.getElementById('settings-panel').classList.toggle('open'); }
 
-  // ── 데이터 불러오기 ──
+  const NOTION_COLORS = {
+    default:'#a08c78', gray:'#868e96', brown:'#a0522d',
+    orange:'#e8590c', yellow:'#d4a017', green:'#2f9e44',
+    blue:'#1c7ed6', purple:'#ae3ec9', pink:'#d6336c', red:'#f03e3e',
+  };
+  function getTagColor(c) { return NOTION_COLORS[c] || NOTION_COLORS.default; }
+
   async function fetchTodos() {
     const btn = document.getElementById('refresh-btn');
     btn.classList.add('spinning');
@@ -367,20 +392,16 @@
       const data = await res.json();
       if (!res.ok) { showError(data.error || JSON.stringify(data, null, 2)); return; }
       render(data.results || []);
-    } catch (e) {
-      showError('네트워크 에러: ' + e.message);
-    } finally {
-      btn.classList.remove('spinning');
-    }
+    } catch (e) { showError('네트워크 에러: ' + e.message); }
+    finally { btn.classList.remove('spinning'); }
   }
 
-  // ── 렌더링 ──
   function render(items) {
     const list = document.getElementById('todo-list');
     const progressWrap = document.getElementById('progress-wrap');
 
     if (items.length === 0) {
-      list.innerHTML = `<div style="text-align:center; padding:40px; font-size:14px; color:#adb5bd;">오늘의 할 일이 없습니다 🕊️</div>`;
+      list.innerHTML = `<div style="text-align:center;padding:40px;font-size:13px;font-weight:300;color:#a08c78;">오늘의 할 일이 없어요 🌸</div>`;
       progressWrap.style.display = 'none';
       return;
     }
@@ -390,13 +411,14 @@
     progressWrap.style.display = 'block';
     document.getElementById('progress-label').textContent = `${doneCount} / ${items.length} 완료`;
     document.getElementById('progress-pct').textContent = pct + '%';
-    document.getElementById('progress-fill').style.width = pct + '%';
+    const fill = document.getElementById('progress-fill');
+    fill.style.width = pct + '%';
+    fill.className = 'progress-bar-fill' + (pct === 100 ? ' done-all' : '');
 
-    // 태그 첫 번째 이름 기준 가나다 정렬 (태그 없으면 맨 뒤)
     items.sort((a, b) => {
-      const tagA = a.properties?.['업무']?.multi_select?.[0]?.name || 'ㅿ';
-      const tagB = b.properties?.['업무']?.multi_select?.[0]?.name || 'ㅿ';
-      return tagA.localeCompare(tagB, 'ko');
+      const tA = a.properties?.['업무']?.multi_select?.[0]?.name || 'ㅿ';
+      const tB = b.properties?.['업무']?.multi_select?.[0]?.name || 'ㅿ';
+      return tA.localeCompare(tB, 'ko');
     });
 
     list.innerHTML = '';
@@ -414,7 +436,9 @@
         <label class="cb-wrap">
           <input type="checkbox" ${done ? 'checked' : ''} onchange="updateTodo('${id}', this.checked, this)" />
           <div class="cb-box">
-            <svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg viewBox="0 0 13 11" fill="none">
+              <path d="M1.5 5.5L5 9L11.5 2" stroke="#615847" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </div>
         </label>
         <div class="todo-body">
@@ -427,7 +451,6 @@
     });
   }
 
-  // ── 체크박스 업데이트 ──
   async function updateTodo(pageId, checked, cbEl) {
     const item = cbEl.closest('.todo-item');
     item.classList.toggle('done', checked);
@@ -437,14 +460,9 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ properties: { '완': { checkbox: checked } } })
       });
-      if (!res.ok) {
-        showToast('업데이트 실패');
-        cbEl.checked = !checked;
-        item.classList.toggle('done', !checked);
-        return;
-      }
+      if (!res.ok) { showToast('업데이트 실패'); cbEl.checked = !checked; item.classList.toggle('done', !checked); return; }
       updateProgress();
-      showToast(checked ? '오늘도 수고했어요! ✨' : '다시 힘내볼까요? 🔥');
+      showToast(checked ? '완료! ✨' : '다시 힘내요 🌸');
     } catch (e) { showToast('오류 발생'); }
   }
 
@@ -454,11 +472,13 @@
     const pct   = items.length ? Math.round((done.length / items.length) * 100) : 0;
     document.getElementById('progress-label').textContent = `${done.length} / ${items.length} 완료`;
     document.getElementById('progress-pct').textContent = pct + '%';
-    document.getElementById('progress-fill').style.width = pct + '%';
+    const fill = document.getElementById('progress-fill');
+    fill.style.width = pct + '%';
+    fill.className = 'progress-bar-fill' + (pct === 100 ? ' done-all' : '');
   }
 
   function showError(msg) {
-    document.getElementById('todo-list').innerHTML = `<div style="background:#fff5f5;border:1px solid #fecaca;border-radius:16px;padding:16px;color:#b91c1c;font-size:13px;white-space:pre-wrap;">⚠️ ${msg}</div>`;
+    document.getElementById('todo-list').innerHTML = `<div style="background:#FEF8FA;border:1.5px solid #615847;border-radius:10px;padding:14px;color:#615847;font-size:12px;white-space:pre-wrap;">⚠️ ${msg}</div>`;
     document.getElementById('progress-wrap').style.display = 'none';
   }
 
@@ -471,30 +491,12 @@
     toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
   }
 
-  // ── 노션 태그 색상 매핑 ──
-  const NOTION_COLORS = {
-    default:  '#343a40',
-    gray:     '#868e96',
-    brown:    '#a0522d',
-    orange:   '#e8590c',
-    yellow:   '#f59f00',
-    green:    '#2f9e44',
-    blue:     '#1c7ed6',
-    purple:   '#ae3ec9',
-    pink:     '#d6336c',
-    red:      '#f03e3e',
-  };
-
-  function getTagColor(notionColor) {
-    return NOTION_COLORS[notionColor] || NOTION_COLORS.default;
-  }
-
   function escapeHtml(str) {
     return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
   fetchTodos();
-  setInterval(fetchTodos, 5 * 60 * 1000); // 5분마다 자동 갱신
+  setInterval(fetchTodos, 5 * 60 * 1000);
 </script>
 </body>
 </html>
