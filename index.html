@@ -16,7 +16,7 @@
       --tag-txt:  #ffffff;
       --txt:      #212529;
       --txt-mute: #adb5bd;
-      --radius:   24px;
+      --radius:   20px;
       --shadow:   0 8px 20px rgba(0,0,0,0.06);
       --font-body: 'KoPubDotum', sans-serif;
     }
@@ -116,7 +116,7 @@
       padding: 14px 24px 20px;
       box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
       z-index: 100;
-      border-radius: 20px 20px 0 0;
+      border-radius: 28px 28px 0 0;
     }
     .progress-meta {
       display: flex;
@@ -190,7 +190,7 @@
       padding: 3px 10px;
       border-radius: 8px;
       background: var(--tag-bg);
-      color: var(--tag-txt);
+      color: #fff;
       font-weight: 700;
       flex-shrink: 0;
       letter-spacing: -0.2px;
@@ -339,6 +339,13 @@
     document.getElementById('progress-pct').textContent = pct + '%';
     document.getElementById('progress-fill').style.width = pct + '%';
 
+    // 태그 첫 번째 이름 기준 가나다 정렬 (태그 없으면 맨 뒤)
+    items.sort((a, b) => {
+      const tagA = a.properties?.['업무']?.multi_select?.[0]?.name || 'ㅿ';
+      const tagB = b.properties?.['업무']?.multi_select?.[0]?.name || 'ㅿ';
+      return tagA.localeCompare(tagB, 'ko');
+    });
+
     list.innerHTML = '';
     items.forEach((item, idx) => {
       const p       = item.properties;
@@ -359,7 +366,7 @@
         </label>
         <div class="todo-body">
           <div class="todo-row">
-            ${tags.map(t => `<span class="tag">${escapeHtml(t.name)}</span>`).join('')}
+            ${tags.map(t => `<span class="tag" style="background:${getTagColor(t.name)}">${escapeHtml(t.name)}</span>`).join('')}
             <div class="todo-title">${escapeHtml(content)}</div>
           </div>
         </div>`;
@@ -411,11 +418,29 @@
     toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
   }
 
+  // ── 태그 색상 자동 배정 ──
+  const TAG_COLORS = [
+    '#5c7cfa', '#f03e3e', '#f59f00', '#12b886',
+    '#ae3ec9', '#1c7ed6', '#e8590c', '#2f9e44',
+    '#d6336c', '#0ca678'
+  ];
+  const tagColorMap = {};
+  let tagColorIdx = 0;
+
+  function getTagColor(name) {
+    if (!tagColorMap[name]) {
+      tagColorMap[name] = TAG_COLORS[tagColorIdx % TAG_COLORS.length];
+      tagColorIdx++;
+    }
+    return tagColorMap[name];
+  }
+
   function escapeHtml(str) {
     return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
   fetchTodos();
+  setInterval(fetchTodos, 5 * 60 * 1000); // 5분마다 자동 갱신
 </script>
 </body>
 </html>
