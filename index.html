@@ -243,7 +243,7 @@
       border-radius: 99px;
       transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
     }
-    .progress-bar-fill.done-all { background: var(--green-light); }
+    
 
     /* 토스트 */
     #toast {
@@ -370,9 +370,9 @@
   })();
 
   const NOTION_COLORS = {
-    default:'#a08c78', gray:'#868e96', brown:'#a0522d',
-    orange:'#e8590c', yellow:'#d4a017', green:'#2f9e44',
-    blue:'#1c7ed6', purple:'#ae3ec9', pink:'#d6336c', red:'#f03e3e',
+    default:'#c4a882', gray:'#b0b8c1', brown:'#c49a6c',
+    orange:'#f0a070', yellow:'#e8c96a', green:'#82c882',
+    blue:'#74aee8', purple:'#c49ad6', pink:'#f0a0b8', red:'#f08080',
   };
   function getTagColor(c) { return NOTION_COLORS[c] || NOTION_COLORS.default; }
 
@@ -413,7 +413,7 @@
     document.getElementById('progress-pct').textContent = pct + '%';
     const fill = document.getElementById('progress-fill');
     fill.style.width = pct + '%';
-    fill.className = 'progress-bar-fill' + (pct === 100 ? ' done-all' : '');
+    fill.className = 'progress-bar-fill';
 
     items.sort((a, b) => {
       const tA = a.properties?.['업무']?.multi_select?.[0]?.name || 'ㅿ';
@@ -474,7 +474,7 @@
     document.getElementById('progress-pct').textContent = pct + '%';
     const fill = document.getElementById('progress-fill');
     fill.style.width = pct + '%';
-    fill.className = 'progress-bar-fill' + (pct === 100 ? ' done-all' : '');
+    fill.className = 'progress-bar-fill';
   }
 
   function showError(msg) {
