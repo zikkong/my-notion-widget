@@ -238,6 +238,8 @@
       <div class="date-sub" id="today-sub">—</div>
     </div>
     <div class="header-actions">
+      <div class="icon-btn" onclick="moveDate(-1)">‹</div>
+      <div class="icon-btn" onclick="moveDate(1)">›</div>
       <div class="icon-btn" id="refresh-btn" onclick="fetchTodos()">↻</div>
       <div class="icon-btn" onclick="toggleSettings()">⚙</div>
     </div>
@@ -287,16 +289,38 @@
 <div id="toast"></div>
 
 <script>
-  // ── 날짜 ──
-  const today = new Date();
-  const yyyy  = today.getFullYear();
-  const mm    = String(today.getMonth() + 1).padStart(2, '0');
-  const dd    = String(today.getDate()).padStart(2, '0');
-  const todayStr = `${yyyy}-${mm}-${dd}`;
+  // ── 날짜 상태 ──
+  const realToday = new Date();
   const DAYS = ['일','월','화','수','목','금','토'];
+  let viewDate = new Date(realToday); // 현재 보고 있는 날짜
 
-  document.getElementById('today-date').textContent = `${mm}.${dd}`;
-  document.getElementById('today-sub').textContent  = `${yyyy}년 ${today.getMonth()+1}월 ${today.getDate()}일 (${DAYS[today.getDay()]})`;
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function getDateStr(date) {
+    return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+  }
+
+  function isToday(date) {
+    return getDateStr(date) === getDateStr(realToday);
+  }
+
+  function updateDateHeader() {
+    const m = viewDate.getMonth() + 1;
+    const d = viewDate.getDate();
+    const y = viewDate.getFullYear();
+    document.getElementById('today-date').textContent = `${pad(m)}.${pad(d)}`;
+    const label = isToday(viewDate) ? '오늘' : '';
+    document.getElementById('today-sub').textContent =
+      `${y}년 ${m}월 ${d}일 (${DAYS[viewDate.getDay()]})${label ? ' · ' + label : ''}`;
+  }
+
+  function moveDate(dir) {
+    viewDate.setDate(viewDate.getDate() + dir);
+    updateDateHeader();
+    fetchTodos();
+  }
+
+  updateDateHeader();
 
   // ── 디자인 ──
   function setVar(prop, val) { document.documentElement.style.setProperty(prop, val); }
@@ -306,6 +330,7 @@
   async function fetchTodos() {
     const btn = document.getElementById('refresh-btn');
     btn.classList.add('spinning');
+    const todayStr = getDateStr(viewDate);
     try {
       const res = await fetch('/api/notion?action=query', {
         method: 'POST',
