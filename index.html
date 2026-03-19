@@ -2,58 +2,64 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Notion Today Todo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notion 업무 로그 위젯</title>
     <style>
         :root { --bg: #ffffff; --point: #007bff; --txt: #333; }
-        body { font-family: sans-serif; background: var(--bg); color: var(--txt); padding: 15px; margin: 0; transition: 0.3s; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 8px; }
-        .config-btn { cursor: pointer; opacity: 0.5; font-size: 18px; }
-        .config-panel { display: none; background: rgba(0,0,0,0.05); padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 12px; }
-        .todo-item { display: flex; align-items: flex-start; margin-bottom: 12px; }
-        .todo-checkbox { width: 18px; height: 18px; margin-right: 12px; cursor: pointer; accent-color: var(--point); }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--txt); padding: 20px; margin: 0; transition: 0.3s; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--point); padding-bottom: 10px; }
+        .config-panel { display: none; background: rgba(0,0,0,0.05); padding: 15px; border-radius: 10px; margin-bottom: 20px; font-size: 13px; }
+        .todo-item { display: flex; align-items: flex-start; margin-bottom: 15px; padding: 12px; background: rgba(0,0,0,0.02); border-radius: 8px; border: 1px solid rgba(0,0,0,0.05); }
+        .todo-checkbox { width: 22px; height: 22px; margin-right: 15px; cursor: pointer; accent-color: var(--point); }
         .todo-info { flex: 1; }
-        .todo-content { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
-        .tag-container { display: flex; flex-wrap: wrap; gap: 4px; }
-        .tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: var(--point); color: white; }
+        .todo-content { font-weight: bold; font-size: 16px; margin-bottom: 6px; }
+        .tag-container { display: flex; flex-wrap: wrap; gap: 5px; }
+        .tag { font-size: 11px; padding: 3px 8px; border-radius: 5px; background: var(--point); color: white; font-weight: 500; }
         .completed { text-decoration: line-through; opacity: 0.5; }
-        #error-log { color: #d9534f; font-size: 11px; margin-top: 10px; display: none; background: #f9f2f4; padding: 10px; border-radius: 4px; }
+        #error-display { display: none; margin-top: 20px; padding: 15px; background: #fff5f5; border: 1px solid #ffcccc; color: #cc0000; border-radius: 8px; font-size: 13px; white-space: pre-wrap; }
+        button { cursor: pointer; border: none; background: none; font-size: 18px; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <span id="date-display">Today</span>
-    <span class="config-btn" onclick="document.getElementById('config-panel').style.display = (document.getElementById('config-panel').style.display === 'block' ? 'none' : 'block')">⚙️</span>
+    <div id="today-date" style="font-size: 18px; font-weight: 800;">날짜 확인 중...</div>
+    <div>
+        <button onclick="fetchTodos()">🔄</button>
+        <button onclick="toggleConfig()">⚙️</button>
+    </div>
 </div>
 
 <div id="config-panel" class="config-panel">
-    색상 커스텀: 
-    배경 <input type="color" onchange="changeStyle('--bg', this.value)" value="#ffffff">
-    포인트 <input type="color" onchange="changeStyle('--point', this.value)" value="#007bff">
-    글자 <input type="color" onchange="changeStyle('--txt', this.value)" value="#333333">
+    <strong>🎨 디자인 커스텀</strong><br><br>
+    배경색: <input type="color" onchange="updateStyle('--bg', this.value)" value="#ffffff"> 
+    포인트: <input type="color" onchange="updateStyle('--point', this.value)" value="#007bff"> 
+    글자색: <input type="color" onchange="updateStyle('--txt', this.value)" value="#333333">
 </div>
 
-<div id="todo-list">데이터를 불러오는 중...</div>
-<div id="error-log"></div>
+<div id="todo-list">데이터를 불러오고 있습니다...</div>
+<div id="error-display"></div>
 
 <script>
-    // ⚠️ 정보 입력
-    const TOKEN = "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"; 
-    const DB_ID = "317aa4316f2f80fe9e95e66e0d1e846e";
-    const PROXY = "https://cors-anywhere.herokuapp.com/"; 
+    // 1. 정보를 정확히 입력하세요
+    const TOKEN = "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"; // 스크린샷의 전체 토큰 복사
+    const DB_ID = "317aa4316f2f80fe9e95e66e0d1e846e"; 
+    const PROXY = "https://cors-anywhere.herokuapp.com/";
 
-    function changeStyle(prop, val) { document.documentElement.style.setProperty(prop, val); }
+    function updateStyle(prop, val) { document.documentElement.style.setProperty(prop, val); }
+    function toggleConfig() { const p = document.getElementById('config-panel'); p.style.display = p.style.display === 'block' ? 'none' : 'block'; }
 
     async function fetchTodos() {
-        const today = new Date().toLocaleDateString('sv-SE'); // YYYY-MM-DD 형식
-        document.getElementById('date-display').innerText = today;
-        const errLog = document.getElementById('error-log');
+        const listDiv = document.getElementById("todo-list");
+        const errDiv = document.getElementById("error-display");
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('today-date').innerText = "📅 " + today;
 
         try {
             const response = await fetch(`${PROXY}https://api.notion.com/v1/databases/${DB_ID}/query`, {
                 method: "POST",
                 headers: {
-                    "Authorization": `Bearer ${TOKEN}`,
+                    "Authorization": `Bearer ${TOKEN.trim()}`,
                     "Notion-Version": "2022-06-28",
                     "Content-Type": "application/json"
                 },
@@ -63,34 +69,39 @@
             });
 
             const data = await response.json();
-            if (!response.ok) throw new Error(`${data.code}: ${data.message}`);
-            
+
+            if (!response.ok) {
+                errDiv.style.display = "block";
+                errDiv.innerText = `[에러 발생]\n코드: ${data.code}\n메시지: ${data.message}\n\n팁: 'Invalid Token'이 뜬다면 토큰 복사가 잘못되었거나 노션 페이지 연결을 다시 확인하세요.`;
+                return;
+            }
+
             render(data.results);
-            errLog.style.display = "none";
+            errDiv.style.display = "none";
         } catch (e) {
-            errLog.style.display = "block";
-            errLog.innerText = "⚠️ 오류 발생: " + e.message + "\n(CORS 프록시 서버 승인이 필요할 수 있습니다)";
-            document.getElementById('todo-list').innerHTML = "";
+            errDiv.style.display = "block";
+            errDiv.innerText = "네트워크 에러: CORS 프록시 승인이 필요할 수 있습니다.\nhttps://cors-anywhere.herokuapp.com/corsdemo 접속 후 버튼을 누르세요.";
         }
     }
 
     function render(items) {
         const listDiv = document.getElementById("todo-list");
         if (items.length === 0) {
-            listDiv.innerHTML = "<p style='font-size:13px;'>오늘 업무가 없습니다.</p>";
+            listDiv.innerHTML = "<p style='opacity:0.6;'>오늘 등록된 업무가 없습니다.</p>";
             return;
         }
+
         listDiv.innerHTML = "";
         items.forEach(item => {
             const p = item.properties;
-            const content = p["업무 내용"]?.title?.[0]?.plain_text || "내용 없음";
-            const tags = p["업무"]?.multi_select || [];
-            const done = p["완"]?.checkbox || false;
+            const content = p["업무 내용"]?.title?.[0]?.plain_text || "내용 없음"; // 제목
+            const tags = p["업무"]?.multi_select || []; // 다중선택
+            const done = p["완"]?.checkbox || false; // 체크박스
 
             const row = document.createElement("div");
             row.className = "todo-item";
             row.innerHTML = `
-                <input type="checkbox" class="todo-checkbox" ${done ? 'checked' : ''} onchange="update('${item.id}', this.checked)">
+                <input type="checkbox" class="todo-checkbox" ${done ? 'checked' : ''} onchange="updateTodo('${item.id}', this.checked)">
                 <div class="todo-info">
                     <div class="todo-content ${done ? 'completed' : ''}">${content}</div>
                     <div class="tag-container">${tags.map(t => `<span class="tag">${t.name}</span>`).join('')}</div>
@@ -100,15 +111,15 @@
         });
     }
 
-    async function update(id, val) {
-        await fetch(`${PROXY}https://api.notion.com/v1/pages/${id}`, {
+    async function updateTodo(pageId, checked) {
+        await fetch(`${PROXY}https://api.notion.com/v1/pages/${pageId}`, {
             method: "PATCH",
             headers: {
-                "Authorization": `Bearer ${TOKEN}`,
+                "Authorization": `Bearer ${TOKEN.trim()}`,
                 "Notion-Version": "2022-06-28",
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ properties: { "완": { checkbox: val } } })
+            body: JSON.stringify({ properties: { "완": { checkbox: checked } } })
         });
         fetchTodos();
     }
