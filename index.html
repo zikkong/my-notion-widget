@@ -2,8 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notion Custom Todo Widget</title>
+    <title>Notion Todo Widget</title>
     <style>
         :root {
             --bg-color: #ffffff;
@@ -11,103 +10,49 @@
             --text-color: #333333;
         }
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            font-family: -apple-system, sans-serif; 
             background: var(--bg-color); 
             color: var(--text-color); 
-            padding: 15px;
-            margin: 0;
-            transition: all 0.3s ease;
+            padding: 15px; margin: 0;
         }
-        /* 헤더 및 설정 창 */
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .config-panel { 
-            display: none; background: rgba(0,0,0,0.05); padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 12px;
-        }
-        .config-item { display: flex; justify-content: space-between; margin-bottom: 5px; align-items: center; }
-        
-        /* 투두 리스트 아이템 */
-        .todo-item { display: flex; align-items: flex-start; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(0,0,0,0.1); }
-        .todo-checkbox { 
-            width: 20px; height: 20px; margin-right: 12px; cursor: pointer; accent-color: var(--accent-color);
-        }
+        .header { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .todo-item { display: flex; align-items: flex-start; margin-bottom: 15px; }
+        .todo-checkbox { width: 18px; height: 18px; margin-right: 12px; cursor: pointer; accent-color: var(--accent-color); }
         .todo-info { flex: 1; }
-        .todo-title { font-weight: 600; font-size: 15px; margin-bottom: 3px; }
-        .todo-desc { font-size: 13px; opacity: 0.7; line-height: 1.4; }
-        .completed { text-decoration: line-through; opacity: 0.5; }
         
-        /* 버튼 스타일 */
-        .btn-icon { background: none; border: none; cursor: pointer; font-size: 18px; color: var(--text-color); opacity: 0.6; }
-        .btn-icon:hover { opacity: 1; }
+        /* 업무 내용 (제목 속성) */
+        .todo-content { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+        
+        /* 업무 (다중 선택 속성) */
+        .tag-container { display: flex; flex-wrap: wrap; gap: 4px; }
+        .tag { 
+            font-size: 11px; padding: 2px 6px; border-radius: 4px; 
+            background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .completed { text-decoration: line-through; opacity: 0.5; }
+        #status { font-size: 12px; color: red; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <strong id="today-date">Today</strong>
-    <button class="btn-icon" onclick="toggleConfig()">⚙️</button>
+    <span id="date-str">오늘의 할 일</span>
+    <span style="cursor:pointer" onclick="fetchTodos()">🔄</span>
 </div>
 
-<div id="config-panel" class="config-panel">
-    <div class="config-item">
-        <span>배경색</span>
-        <input type="color" id="bgPicker" onchange="updateTheme('bg', this.value)">
-    </div>
-    <div class="config-item">
-        <span>포인트색</span>
-        <input type="color" id="accentPicker" onchange="updateTheme('accent', this.value)">
-    </div>
-    <div class="config-item">
-        <span>글자색</span>
-        <input type="color" id="textPicker" onchange="updateTheme('text', this.value)">
-    </div>
-    <div style="text-align: right; margin-top: 5px;">
-        <small style="cursor:pointer" onclick="resetTheme()">초기화</small>
-    </div>
-</div>
-
-<div id="todo-list">데이터를 불러오는 중...</div>
+<div id="todo-list">불러오는 중...</div>
+<div id="status"></div>
 
 <script>
-    // --- 설정값 (여기에 본인의 정보를 입력하세요) ---
-    const NOTION_API_KEY = "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"; 
-    const DATABASE_ID = "324aa4316f2f8028965ae1587523d014";
-    const PROXY_URL = "https://cors-anywhere.herokuapp.com/"; // CORS 해결용
+    // 1. 여기에 본인의 정보를 입력하세요
+    const NOTION_API_KEY = "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"; 
+    const DATABASE_ID = "317aa4316f2f80fe9e95e66e0d1e846e";
+    const PROXY_URL = "https://cors-anywhere.herokuapp.com/";
 
-    // 테마 설정 불러오기/저장
-    function updateTheme(type, value) {
-        if(type === 'bg') document.documentElement.style.setProperty('--bg-color', value);
-        if(type === 'accent') document.documentElement.style.setProperty('--accent-color', value);
-        if(type === 'text') document.documentElement.style.setProperty('--text-color', value);
-        
-        const settings = JSON.parse(localStorage.getItem('widget-style') || '{}');
-        settings[type] = value;
-        localStorage.setItem('widget-style', JSON.stringify(settings));
-    }
-
-    function loadTheme() {
-        const settings = JSON.parse(localStorage.getItem('widget-style') || '{"bg":"#ffffff","accent":"#007bff","text":"#333333"}');
-        updateTheme('bg', settings.bg);
-        updateTheme('accent', settings.accent);
-        updateTheme('text', settings.text);
-        document.getElementById('bgPicker').value = settings.bg;
-        document.getElementById('accentPicker').value = settings.accent;
-        document.getElementById('textPicker').value = settings.text;
-    }
-
-    function toggleConfig() {
-        const panel = document.getElementById('config-panel');
-        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-    }
-
-    function resetTheme() {
-        localStorage.removeItem('widget-style');
-        location.reload();
-    }
-
-    // --- 노션 API 연동 ---
     async function fetchTodos() {
         const today = new Date().toISOString().split('T')[0];
-        document.getElementById('today-date').innerText = today;
+        document.getElementById('date-str').innerText = today;
 
         try {
             const response = await fetch(`${PROXY_URL}https://api.notion.com/v1/databases/${DATABASE_ID}/query`, {
@@ -123,34 +68,41 @@
             });
 
             const data = await response.json();
+            if (!response.ok) throw new Error(data.message);
             renderTodos(data.results);
         } catch (e) {
-            document.getElementById('todo-list').innerText = "오류 발생: API 설정을 확인하세요.";
+            document.getElementById('status').innerText = "에러: " + e.message;
         }
     }
 
     function renderTodos(todos) {
         const listDiv = document.getElementById("todo-list");
         if (todos.length === 0) {
-            listDiv.innerHTML = "<p style='font-size:13px; opacity:0.5;'>오늘 할 일이 없습니다.</p>";
+            listDiv.innerHTML = "<p style='font-size:13px; color:#999;'>오늘 할 일이 없습니다.</p>";
             return;
         }
         
         listDiv.innerHTML = "";
         todos.forEach(page => {
-            const props = page.properties;
-            const id = page.id;
-            const title = props["업무"]?.title[0]?.plain_text || "제목 없음";
-            const desc = props["업무 내용"]?.rich_text[0]?.plain_text || "";
-            const isDone = props["완료"]?.checkbox || false;
+            const p = page.properties;
+            
+            // 데이터 매핑 (사용자 설정 기준)
+            const content = p["업무 내용"]?.title[0]?.plain_text || "내용 없음"; // 제목
+            const tags = p["업무"]?.multi_select || []; // 다중 선택
+            const isDone = p["완"]?.checkbox || false; // 체크박스
 
             const item = document.createElement("div");
             item.className = "todo-item";
+            
+            // 다중 선택 태그 생성
+            const tagHtml = tags.map(t => `<span class="tag">${t.name}</span>`).join('');
+
             item.innerHTML = `
-                <input type="checkbox" class="todo-checkbox" ${isDone ? 'checked' : ''} onchange="toggleTodo('${id}', this.checked)">
+                <input type="checkbox" class="todo-checkbox" ${isDone ? 'checked' : ''} 
+                       onchange="toggleTodo('${page.id}', this.checked)">
                 <div class="todo-info">
-                    <div class="todo-title ${isDone ? 'completed' : ''}">${title}</div>
-                    <div class="todo-desc">${desc}</div>
+                    <div class="todo-content ${isDone ? 'completed' : ''}">${content}</div>
+                    <div class="tag-container">${tagHtml}</div>
                 </div>
             `;
             listDiv.appendChild(item);
@@ -166,14 +118,12 @@
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                properties: { "완료": { checkbox: checked } }
+                properties: { "완": { checkbox: checked } }
             })
         });
         fetchTodos();
     }
 
-    // 초기 실행
-    loadTheme();
     fetchTodos();
 </script>
 </body>
