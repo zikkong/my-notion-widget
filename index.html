@@ -169,16 +169,21 @@
     .cb-wrap input:checked + .cb-box svg { display: block; }
 
     .todo-body { flex: 1; min-width: 0; }
+    .todo-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
     .todo-title {
       font-size: 15px;
       font-weight: 600;
       line-height: 1.4;
-      margin-bottom: 7px;
       transition: text-decoration .2s;
     }
     .todo-item.done .todo-title { text-decoration: line-through; }
 
-    .tags { display: flex; flex-wrap: wrap; gap: 5px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 5px; flex-shrink: 0; }
     .tag {
       font-size: 11px;
       padding: 3px 9px;
@@ -386,8 +391,10 @@
           </div>
         </label>
         <div class="todo-body">
-          <div class="todo-title">${escapeHtml(content)}</div>
-          <div class="tags">${tags.map(t => `<span class="tag">${escapeHtml(t.name)}</span>`).join('')}</div>
+          <div class="todo-row">
+            <div class="tags">${tags.map(t => `<span class="tag">${escapeHtml(t.name)}</span>`).join('')}</div>
+            <div class="todo-title">${escapeHtml(content)}</div>
+          </div>
         </div>`;
       list.appendChild(div);
     });
