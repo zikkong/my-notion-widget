@@ -50,10 +50,18 @@
       display: flex;
       justify-content: center;
       transition: background 0.3s;
+      position: relative;
+    }
+
+    /* 테두리를 fixed로 고정 */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
       border: 2px solid var(--point);
       border-radius: var(--radius);
-      position: relative;
-      overflow: clip;
+      pointer-events: none;
+      z-index: 9999;
     }
 
     .widget-container {
