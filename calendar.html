@@ -197,11 +197,11 @@
 
     .day-num { font-size: 14px; font-weight: 400; line-height: 1; color: var(--txt); }
 
-    .day-indicator { margin-top: 4px; display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; }
-    .day-count { font-size: 9px; color: var(--txt-mute); font-weight: 300; line-height: 1; }
-    .day-bar-bg { width: 70%; height: 4px; background: var(--border); border-radius: 99px; overflow: hidden; }
-    .day-bar-fill { height: 100%; background: var(--done-bg); border-radius: 99px; transition: width 0.4s ease; }
-    .day-bar-fill.done-all { background: var(--green-light); }
+    .day-indicator { margin-top: 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; }
+    .day-count { font-size: 9px; color: var(--txt-mute); font-weight: 300; line-height: 1; margin-top: 3px; }
+    .day-bar-bg { width: 80%; height: 4px; background: transparent; border-radius: 99px; overflow: hidden; }
+    .day-bar-fill { height: 100%; background: #FDD5E7; border-radius: 99px; transition: width 0.4s ease; }
+    .day-bar-fill.done-all { background: #C2DF98; }
 
     /* ── 선택 날 할일 ── */
     .selected-date-label {
@@ -436,8 +436,8 @@
       cell.innerHTML = `
         <div class="day-num">${d}</div>
         ${info ? `<div class="day-indicator">
-          <div class="day-count">${info.done}/${info.total}</div>
           <div class="day-bar-bg"><div class="day-bar-fill ${allDone ? 'done-all' : ''}" style="width:${pct}%"></div></div>
+          <div class="day-count">${info.done}/${info.total}</div>
         </div>` : ''}`;
 
       cell.addEventListener('click', () => selectDate(dateStr));
