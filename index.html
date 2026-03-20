@@ -1,63 +1,597 @@
-export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Today's Tasks</title>
+  <style>
+    @font-face {
+      font-family: 'SBAggroOTF';
+      src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroL.woff') format('woff');
+      font-weight: 300;
+    }
+    @font-face {
+      font-family: 'SBAggroOTF';
+      src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroM.woff') format('woff');
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: 'SBAggroOTF';
+      src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroB.woff') format('woff');
+      font-weight: 700;
+    }
 
-  if (req.method === "OPTIONS") return res.status(200).end();
+    :root {
+      --border-color:  #615847;
+      --txt:           #615847;
+      --txt-mute:      #a08c78;
+      --todo-bg:       #FEF8FA;
+      --done-bg:       #FDD5E7;
+      --check-bg:      #FFF4B1;
+      --progress-fill: #FDD5E7;
+      --green-light:   #D3EBAD;
+      --green-dark:    #C2DF98;
+      --radius-outer:  18px;
+      --radius-inner:  10px;
+    }
 
-  const TOKEN = process.env.NOTION_TOKEN;
-  const DB_ID = process.env.NOTION_DB_ID;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    ::-webkit-scrollbar { display: none; }
+    * { -ms-overflow-style: none; scrollbar-width: none; }
 
-  if (!TOKEN || !DB_ID) {
-    return res.status(500).json({ error: "서버 환경변수가 설정되지 않았습니다." });
+    body {
+      font-family: 'SBAggroOTF', sans-serif;
+      background: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 0;
+      margin: 0;
+    }
+
+    /* ── 고정 외곽선 오버레이 ── */
+    .border-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-outer);
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    .screen-wrapper {
+      width: 100%;
+      max-width: 420px;
+      min-height: 100vh;
+      background: #ffffff;
+      border-radius: var(--radius-outer);
+      display: flex;
+      flex-direction: column;
+      overflow: clip;
+      position: relative;
+    }
+
+    /* ── 헤더 ── */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 24px 24px 8px;
+      flex-shrink: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      background: #ffffff;
+      border-radius: var(--radius-outer) var(--radius-outer) 0 0;
+    }
+
+    .date-main {
+      font-family: 'SBAggroOTF', sans-serif;
+      font-size: 36px;
+      font-weight: 700;
+      color: #3d2f22;
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+    .date-sub {
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--txt);
+      margin-top: 5px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      margin-top: 6px;
+    }
+    .icon-btn {
+      background: var(--todo-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      width: 28px; height: 28px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      color: var(--txt);
+      transition: all 0.15s;
+      font-family: 'SBAggroOTF', sans-serif;
+    }
+    .icon-btn:active { transform: scale(0.9); }
+    .icon-btn.spinning { animation: spin .6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── 설정 패널 ── */
+    .settings-panel {
+      background: var(--todo-bg);
+      border-top: 1px solid #e8ddd5;
+      border-bottom: 1px solid #e8ddd5;
+      padding: 10px 24px;
+      display: none;
+      flex-wrap: wrap;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .settings-panel.open { display: flex; }
+    .setting-row { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 300; color: var(--txt-mute); }
+    .setting-row label { white-space: nowrap; }
+    input[type="color"] {
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      width: 26px; height: 22px;
+      padding: 1px; cursor: pointer; background: none;
+    }
+
+    /* ── 할 일 목록 영역 ── */
+    .content-area {
+      flex: 1;
+      padding: 12px 20px 120px;
+      overflow-y: auto;
+      background: #fff;
+    }
+
+    #todo-list { display: flex; flex-direction: column; gap: 6px; }
+
+    .todo-item {
+      background: var(--todo-bg);
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-inner);
+      padding: 8px 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      animation: fadeUp .25s ease both;
+      transition: background 0.2s;
+      flex-direction: column;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .todo-item.done { background: var(--done-bg); }
+
+    .todo-main-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+    }
+
+    /* 체크박스 */
+    .cb-wrap { position: relative; width: 22px; height: 22px; flex-shrink: 0; }
+    .cb-wrap input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .cb-box {
+      width: 22px; height: 22px;
+      border: 1.5px solid var(--border-color);
+      border-radius: 5px;
+      background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .cb-wrap input:checked + .cb-box {
+      background: var(--check-bg);
+      border-color: var(--border-color);
+    }
+    .cb-box svg { width: 13px; display: none; }
+    .cb-wrap input:checked + .cb-box svg { display: block; }
+
+    .todo-body { flex: 1; min-width: 0; cursor: pointer; }
+    .todo-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+    .tag {
+      font-size: 10px;
+      font-weight: 400;
+      padding: 2px 8px;
+      border-radius: 8px;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .todo-title {
+      font-size: 14px;
+      font-weight: 300;
+      color: #3d2f22;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .todo-item.done .todo-title {
+      text-decoration: line-through;
+      color: var(--txt-mute);
+    }
+
+    /* 펼쳐지는 내용 */
+    .todo-detail {
+      display: none;
+      width: 100%;
+      padding: 8px 10px;
+      background: rgba(255,255,255,0.6);
+      border-radius: 8px;
+      border-top: 1px solid rgba(97,88,71,0.15);
+      font-size: 12px;
+      font-weight: 300;
+      color: #5a3e2b;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .todo-detail.open { display: block; }
+    .todo-detail.loading { color: var(--txt-mute); font-style: italic; }
+
+    /* 펼치기 화살표 */
+    .expand-btn {
+      font-size: 10px;
+      color: var(--txt-mute);
+      flex-shrink: 0;
+      transition: transform .2s;
+      cursor: pointer;
+      padding: 2px;
+    }
+    .expand-btn.open { transform: rotate(180deg); }
+
+    /* ── 하단 초록 줄무늬 + 진행률 ── */
+    .bottom-area {
+      flex-shrink: 0;
+      position: sticky;
+      bottom: 0;
+      z-index: 50;
+      padding: 18px 24px 24px;
+      border-radius: 0 0 var(--radius-outer) var(--radius-outer);
+      background: repeating-linear-gradient(
+        to right,
+        var(--green-light) 0px,
+        var(--green-light) 18px,
+        var(--green-dark) 18px,
+        var(--green-dark) 36px
+      );
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--txt);
+      margin-bottom: 7px;
+    }
+
+    .progress-bar-bg {
+      height: 14px;
+      background: #fff;
+      border: 1.5px solid var(--border-color);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--progress-fill);
+      border-radius: 99px;
+      transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 20px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--border-color);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 300;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      pointer-events: none;
+      z-index: 9998;
+      font-family: 'SBAggroOTF', sans-serif;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<!-- 고정 외곽선 오버레이 -->
+<div class="border-overlay"></div>
+
+<div class="screen-wrapper">
+
+  <!-- 헤더 -->
+  <div class="header">
+    <div>
+      <div class="date-main" id="today-date">—</div>
+      <div class="date-sub" id="today-sub">—</div>
+    </div>
+    <div class="header-actions">
+      <div class="icon-btn" onclick="moveDate(-1)">‹</div>
+      <div class="icon-btn" onclick="moveDate(1)">›</div>
+      <div class="icon-btn" id="refresh-btn" onclick="fetchTodos()">↻</div>
+      <div class="icon-btn" onclick="toggleSettings()">⚙</div>
+    </div>
+  </div>
+
+  <!-- 설정 패널 -->
+  <div class="settings-panel" id="settings-panel">
+    <div class="setting-row">
+      <label>테두리/글자</label>
+      <input type="color" value="#615847" oninput="setVar('--border-color', this.value); setVar('--txt', this.value)" />
+    </div>
+    <div class="setting-row">
+      <label>미완료</label>
+      <input type="color" value="#FEF8FA" oninput="setVar('--todo-bg', this.value)" />
+    </div>
+    <div class="setting-row">
+      <label>완료</label>
+      <input type="color" value="#FDD5E7" oninput="setVar('--done-bg', this.value); setVar('--progress-fill', this.value)" />
+    </div>
+    <div class="setting-row">
+      <label>체크</label>
+      <input type="color" value="#FFF4B1" oninput="setVar('--check-bg', this.value)" />
+    </div>
+    <div class="setting-row">
+      <label>초록</label>
+      <input type="color" value="#D3EBAD" oninput="setVar('--green-light', this.value)" />
+    </div>
+  </div>
+
+  <!-- 할 일 목록 -->
+  <div class="content-area">
+    <div id="todo-list">
+      <div style="text-align:center;padding:40px;color:#a08c78;font-size:13px;font-weight:300;">불러오는 중...</div>
+    </div>
+  </div>
+
+  <!-- 하단 초록 줄무늬 + 진행률 -->
+  <div class="bottom-area" id="progress-wrap" style="display:none">
+    <div class="progress-meta">
+      <span id="progress-label">0 / 0 완료</span>
+      <span id="progress-pct">0%</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+  </div>
+
+</div>
+<div id="toast"></div>
+
+<script>
+  const realToday = new Date();
+  const DAYS = ['일','월','화','수','목','금','토'];
+  let viewDate = new Date(realToday);
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function getDateStr(d) { return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+  function isToday(d) { return getDateStr(d) === getDateStr(realToday); }
+
+  function updateDateHeader() {
+    const m = viewDate.getMonth() + 1;
+    const d = viewDate.getDate();
+    const y = viewDate.getFullYear();
+    document.getElementById('today-date').textContent = `${pad(m)}.${pad(d)}`;
+    document.getElementById('today-sub').textContent =
+      `${y}년 ${m}월 ${d}일 (${DAYS[viewDate.getDay()]})${isToday(viewDate) ? '  오늘' : ''}`;
   }
 
-  const notionHeaders = {
-    Authorization: `Bearer ${TOKEN}`,
-    "Notion-Version": "2022-06-28",
-    "Content-Type": "application/json",
+  function moveDate(dir) {
+    viewDate.setDate(viewDate.getDate() + dir);
+    updateDateHeader();
+    fetchTodos();
+  }
+
+  updateDateHeader();
+
+  function setVar(prop, val) {
+    document.documentElement.style.setProperty(prop, val);
+    const saved = JSON.parse(localStorage.getItem('widget-colors-todo') || '{}');
+    saved[prop] = val;
+    localStorage.setItem('widget-colors-todo', JSON.stringify(saved));
+  }
+  function toggleSettings() { document.getElementById('settings-panel').classList.toggle('open'); }
+
+  (function loadSavedColors() {
+    const saved = JSON.parse(localStorage.getItem('widget-colors-todo') || '{}');
+    Object.entries(saved).forEach(([prop, val]) => document.documentElement.style.setProperty(prop, val));
+    document.querySelectorAll('input[type="color"]').forEach(input => {
+      const prop = input.getAttribute('oninput')?.match(/'(--[^']+)'/)?.[1];
+      if (prop && saved[prop]) input.value = saved[prop];
+    });
+  })();
+
+  const NOTION_COLORS = {
+    default:'#c4a882', gray:'#b0b8c1', brown:'#c49a6c',
+    orange:'#f0a070', yellow:'#e8c96a', green:'#82c882',
+    blue:'#74aee8', purple:'#c49ad6', pink:'#f0a0b8', red:'#f08080',
   };
+  function getTagColor(c) { return NOTION_COLORS[c] || NOTION_COLORS.default; }
 
-  const { pageId, action } = req.query;
-
-  try {
-    // ── 블록 내용 가져오기 ──
-    if (action === 'blocks' && pageId) {
-      const response = await fetch(
-        `https://api.notion.com/v1/blocks/${pageId}/children`,
-        { method: "GET", headers: notionHeaders }
-      );
-      const data = await response.json();
-      return res.status(response.status).json(data);
-    }
-
-    // ── 체크박스 업데이트 ──
-    if (req.method === "PATCH" && pageId) {
-      const response = await fetch(
-        `https://api.notion.com/v1/pages/${pageId}`,
-        { method: "PATCH", headers: notionHeaders, body: JSON.stringify(req.body) }
-      );
-      const data = await response.json();
-      return res.status(response.status).json(data);
-    }
-
-    // ── 할 일 목록 가져오기 ──
-    if (req.method === "POST" || req.method === "GET") {
-      const today = new Date().toISOString().split("T")[0];
-      const body = req.method === "POST" ? req.body : {
-        filter: { property: "날짜", date: { equals: today } },
-        sorts: [{ timestamp: "created_time", direction: "ascending" }],
-      };
-      const response = await fetch(
-        `https://api.notion.com/v1/databases/${DB_ID}/query`,
-        { method: "POST", headers: notionHeaders, body: JSON.stringify(body) }
-      );
-      const data = await response.json();
-      return res.status(response.status).json(data);
-    }
-
-    return res.status(405).json({ error: "허용되지 않는 메서드" });
-  } catch (e) {
-    return res.status(500).json({ error: e.message });
+  async function fetchTodos() {
+    const btn = document.getElementById('refresh-btn');
+    btn.classList.add('spinning');
+    const todayStr = getDateStr(viewDate);
+    try {
+      const res = await fetch('/api/notion?action=query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filter: { property: '날짜', date: { equals: todayStr } },
+          sorts: [{ timestamp: 'created_time', direction: 'ascending' }]
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) { showError(data.error || JSON.stringify(data, null, 2)); return; }
+      render(data.results || []);
+    } catch (e) { showError('네트워크 에러: ' + e.message); }
+    finally { btn.classList.remove('spinning'); }
   }
-}
+
+  function render(items) {
+    const list = document.getElementById('todo-list');
+    const progressWrap = document.getElementById('progress-wrap');
+
+    if (items.length === 0) {
+      list.innerHTML = `<div style="text-align:center;padding:40px;font-size:13px;font-weight:300;color:#a08c78;">오늘의 할 일이 없어요 🌸</div>`;
+      progressWrap.style.display = 'none';
+      return;
+    }
+
+    const doneCount = items.filter(i => i.properties?.['완']?.checkbox).length;
+    const pct = Math.round((doneCount / items.length) * 100);
+    progressWrap.style.display = 'block';
+    document.getElementById('progress-label').textContent = `${doneCount} / ${items.length} 완료`;
+    document.getElementById('progress-pct').textContent = pct + '%';
+    const fill = document.getElementById('progress-fill');
+    fill.style.width = pct + '%';
+    fill.className = 'progress-bar-fill';
+
+    items.sort((a, b) => {
+      const tA = a.properties?.['업무']?.multi_select?.[0]?.name || 'ㅿ';
+      const tB = b.properties?.['업무']?.multi_select?.[0]?.name || 'ㅿ';
+      return tA.localeCompare(tB, 'ko');
+    });
+
+    list.innerHTML = '';
+    items.forEach((item, idx) => {
+      const p       = item.properties;
+      const content = p['업무 내용']?.title?.[0]?.plain_text || '(내용 없음)';
+      const tags    = p['업무']?.multi_select || [];
+      const done    = p['완']?.checkbox || false;
+      const id      = item.id;
+
+      const div = document.createElement('div');
+      div.className = 'todo-item' + (done ? ' done' : '');
+      div.style.animationDelay = (idx * 0.05) + 's';
+      div.innerHTML = `
+        <div class="todo-main-row">
+          <label class="cb-wrap">
+            <input type="checkbox" ${done ? 'checked' : ''} onchange="updateTodo('${id}', this.checked, this)" />
+            <div class="cb-box">
+              <svg viewBox="0 0 13 11" fill="none">
+                <path d="M1.5 5.5L5 9L11.5 2" stroke="#615847" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </label>
+          <div class="todo-body" onclick="toggleDetail('${id}', this)">
+            <div class="todo-row">
+              ${tags.map(t => `<span class="tag" style="background:${getTagColor(t.color)}">${escapeHtml(t.name)}</span>`).join('')}
+              <div class="todo-title">${escapeHtml(content)}</div>
+            </div>
+          </div>
+          <span class="expand-btn" onclick="toggleDetail('${id}', this.closest('.todo-item').querySelector('.todo-body'))">▾</span>
+        </div>
+        <div class="todo-detail" id="detail-${id}"></div>`;
+      list.appendChild(div);
+    });
+  }
+
+  // ── 내용 펼치기/닫기 ──
+  async function toggleDetail(pageId, bodyEl) {
+    const detail = document.getElementById(`detail-${pageId}`);
+    const expandBtn = bodyEl.closest('.todo-item').querySelector('.expand-btn');
+    const isOpen = detail.classList.contains('open');
+
+    if (isOpen) {
+      detail.classList.remove('open');
+      expandBtn.classList.remove('open');
+      return;
+    }
+
+    detail.classList.add('open', 'loading');
+    expandBtn.classList.add('open');
+    detail.textContent = '불러오는 중...';
+
+    try {
+      const res = await fetch(`/api/notion?pageId=${pageId}&action=blocks`);
+      const data = await res.json();
+
+      if (!res.ok) { detail.textContent = '내용을 불러올 수 없어요.'; detail.classList.remove('loading'); return; }
+
+      // 블록에서 텍스트 추출
+      const text = (data.results || [])
+        .map(block => {
+          const type = block.type;
+          const richText = block[type]?.rich_text || [];
+          return richText.map(t => t.plain_text).join('');
+        })
+        .filter(t => t.trim())
+        .join('\n');
+
+      detail.classList.remove('loading');
+      detail.textContent = text || '(작성된 내용이 없어요)';
+    } catch (e) {
+      detail.classList.remove('loading');
+      detail.textContent = '불러오기 실패';
+    }
+  }
+
+  async function updateTodo(pageId, checked, cbEl) {
+    const item = cbEl.closest('.todo-item');
+    item.classList.toggle('done', checked);
+    try {
+      const res = await fetch(`/api/notion?pageId=${pageId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ properties: { '완': { checkbox: checked } } })
+      });
+      if (!res.ok) { showToast('업데이트 실패'); cbEl.checked = !checked; item.classList.toggle('done', !checked); return; }
+      updateProgress();
+      showToast(checked ? '완료! ✨' : '다시 힘내요 🌸');
+    } catch (e) { showToast('오류 발생'); }
+  }
+
+  function updateProgress() {
+    const items = document.querySelectorAll('.todo-item');
+    const done  = document.querySelectorAll('.todo-item.done');
+    const pct   = items.length ? Math.round((done.length / items.length) * 100) : 0;
+    document.getElementById('progress-label').textContent = `${done.length} / ${items.length} 완료`;
+    document.getElementById('progress-pct').textContent = pct + '%';
+    const fill = document.getElementById('progress-fill');
+    fill.style.width = pct + '%';
+    fill.className = 'progress-bar-fill';
+  }
+
+  function showError(msg) {
+    document.getElementById('todo-list').innerHTML = `<div style="background:#FEF8FA;border:1.5px solid #615847;border-radius:10px;padding:14px;color:#615847;font-size:12px;white-space:pre-wrap;">⚠️ ${msg}</div>`;
+    document.getElementById('progress-wrap').style.display = 'none';
+  }
+
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  fetchTodos();
+  setInterval(fetchTodos, 5 * 60 * 1000);
+</script>
+</body>
+</html>
