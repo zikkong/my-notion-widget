@@ -62,8 +62,20 @@
       max-width: 100%;
       display: flex;
       flex-direction: column;
-      min-height: 100vh;
-      padding: 16px;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .header-wrap {
+      flex-shrink: 0;
+      padding: 16px 16px 0;
+      background: var(--bg);
+    }
+
+    .timeline-outer {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 16px 16px;
     }
 
     /* ── 헤더 ── */
@@ -396,7 +408,8 @@
 <body>
 <div class="widget-container">
 
-  <!-- 헤더 -->
+  <!-- 헤더 고정 영역 -->
+  <div class="header-wrap">
   <div class="header">
     <div>
       <div class="header-title" id="header-date">—</div>
@@ -407,14 +420,17 @@
       <button class="add-btn" onclick="openModal()">+ 추가</button>
     </div>
   </div>
+  </div>
 
   <!-- 타임라인 -->
+  <div class="timeline-outer">
   <div class="timeline-wrap">
     <div class="time-labels" id="time-labels"></div>
     <div class="grid-area" id="grid-area">
       <div class="drag-preview" id="drag-preview"></div>
     </div>
   </div>
+</div>
 
 </div>
 
@@ -795,6 +811,17 @@
 
   // ── 초기화 ────────────────────────────────────────────────
   buildGrid();
+
+  // 현재 시간으로 스크롤
+  function scrollToNow() {
+    const now = new Date();
+    const totalMins = (now.getHours() - START_HOUR) * 60 + now.getMinutes();
+    if (totalMins < 0) return;
+    const scrollPos = Math.max(0, (totalMins / 30 * SLOT_H) - 80);
+    const outer = document.querySelector('.timeline-outer');
+    if (outer) outer.scrollTop = scrollPos;
+  }
+  setTimeout(scrollToNow, 100);
 </script>
 </body>
 </html>
