@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quick Memo</title>
+  <style>
+    @font-face { font-family:'SBAggroOTF'; src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroL.woff') format('woff'); font-weight:300; }
+    @font-face { font-family:'SBAggroOTF'; src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroM.woff') format('woff'); font-weight:400; }
+    @font-face { font-family:'SBAggroOTF'; src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroB.woff') format('woff'); font-weight:700; }
+
+    :root {
+      --border: #615847;
+      --txt:    #615847;
+      --mute:   #a08c78;
+      --radius: 18px;
+      --font:   'SBAggroOTF', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    ::-webkit-scrollbar { display:none; }
+    * { -ms-overflow-style:none; scrollbar-width:none; }
+
+    body {
+      font-family: var(--font);
+      background: #fff;
+      color: var(--txt);
+      min-height: 100vh;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top:0; left:0; right:0; bottom:0;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ── 헤더 ── */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 20px 12px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .header-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .add-btn {
+      background: var(--border);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-family: var(--font);
+      cursor: pointer;
+      font-weight: 400;
+    }
+    .add-btn:active { opacity: 0.85; }
+
+    /* ── 메모 그리드 ── */
+    .memo-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 14px 16px 24px;
+    }
+
+    /* 포스트잇 카드 */
+    .memo-card {
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      animation: fadeUp .2s ease both;
+      min-height: 120px;
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(6px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    /* 색상별 배경 */
+    .memo-card.c0 { background: #FEF8FA; }
+    .memo-card.c1 { background: #FFF4B1; }
+    .memo-card.c2 { background: #D3EBAD; }
+    .memo-card.c3 { background: #E2F5FF; }
+    .memo-card.c4 { background: #F0E8FF; }
+    .memo-card.c5 { background: #FFE8D6; }
+
+    .memo-date {
+      font-size: 9px;
+      font-weight: 300;
+      color: var(--mute);
+    }
+
+    .memo-text {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 300;
+      color: #3d2f22;
+      line-height: 1.6;
+      border: none;
+      background: transparent;
+      resize: none;
+      outline: none;
+      font-family: var(--font);
+      width: 100%;
+      min-height: 60px;
+    }
+
+    .memo-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* 색상 선택 dots */
+    .color-dots {
+      display: flex;
+      gap: 4px;
+    }
+    .cdot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 1px solid rgba(97,88,71,0.3);
+      transition: transform .15s;
+    }
+    .cdot:hover { transform: scale(1.2); }
+    .cdot.active { border: 1.5px solid var(--border); transform: scale(1.2); }
+
+    .del-btn {
+      background: none;
+      border: none;
+      font-size: 11px;
+      color: var(--mute);
+      cursor: pointer;
+      padding: 2px 4px;
+      font-family: var(--font);
+    }
+    .del-btn:hover { color: #c05050; }
+
+    /* 빈 상태 */
+    .empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 40px 0;
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--mute);
+    }
+
+    /* 토스트 */
+    #toast {
+      position: fixed;
+      bottom: 20px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--border);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 300;
+      transition: transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+      pointer-events: none;
+      z-index: 9998;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="header-title">📝 메모</div>
+    <button class="add-btn" onclick="addMemo()">+ 새 메모</button>
+  </div>
+
+  <div class="memo-grid" id="memo-grid"></div>
+
+  <div id="toast"></div>
+
+<script>
+  const BG_COLORS = ['#FEF8FA','#FFF4B1','#D3EBAD','#E2F5FF','#F0E8FF','#FFE8D6'];
+  const DAYS = ['일','월','화','수','목','금','토'];
+
+  let memos = JSON.parse(localStorage.getItem('quick-memos') || '[]');
+
+  function save() {
+    localStorage.setItem('quick-memos', JSON.stringify(memos));
+  }
+
+  function formatDate(ts) {
+    const d = new Date(ts);
+    return `${d.getMonth()+1}/${d.getDate()} (${DAYS[d.getDay()]}) ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  }
+
+  function render() {
+    const grid = document.getElementById('memo-grid');
+    grid.innerHTML = '';
+
+    if (memos.length === 0) {
+      grid.innerHTML = '<div class="empty">+ 새 메모를 눌러 메모를 추가해보세요 🌸</div>';
+      return;
+    }
+
+    memos.forEach((m, idx) => {
+      const card = document.createElement('div');
+      card.className = `memo-card c${m.color}`;
+
+      card.innerHTML = `
+        <div class="memo-date">${formatDate(m.ts)}</div>
+        <textarea class="memo-text" placeholder="메모를 입력하세요...">${esc(m.text)}</textarea>
+        <div class="memo-footer">
+          <div class="color-dots">
+            ${BG_COLORS.map((c,ci) => `<div class="cdot ${ci===m.color?'active':''}" style="background:${c}" onclick="changeColor(${idx},${ci})"></div>`).join('')}
+          </div>
+          <button class="del-btn" onclick="delMemo(${idx})">삭제</button>
+        </div>`;
+
+      // 텍스트 자동 저장
+      const ta = card.querySelector('textarea');
+      ta.addEventListener('input', () => {
+        memos[idx].text = ta.value;
+        save();
+      });
+
+      grid.appendChild(card);
+    });
+  }
+
+  function addMemo() {
+    memos.unshift({ text: '', color: 0, ts: Date.now() });
+    save();
+    render();
+    // 첫 번째 카드 textarea 포커스
+    setTimeout(() => {
+      const ta = document.querySelector('.memo-card textarea');
+      if (ta) ta.focus();
+    }, 50);
+  }
+
+  function delMemo(idx) {
+    memos.splice(idx, 1);
+    save();
+    render();
+    showToast('삭제됐어요!');
+  }
+
+  function changeColor(idx, colorIdx) {
+    memos[idx].color = colorIdx;
+    save();
+    render();
+  }
+
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  function esc(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  render();
+</script>
+</body>
+</html>
