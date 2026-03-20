@@ -1,5 +1,6 @@
 {
   "rewrites": [
-    { "source": "/calendar", "destination": "/calendar.html" }
+    { "source": "/calendar", "destination": "/calendar.html" },
+    { "source": "/timetracker", "destination": "/timetracker.html" }
   ]
 }
