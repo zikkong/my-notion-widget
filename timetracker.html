@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Time Tracker</title>
+  <style>
+    @font-face {
+      font-family: 'SBAggroOTF';
+      src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroL.woff') format('woff');
+      font-weight: 300;
+    }
+    @font-face {
+      font-family: 'SBAggroOTF';
+      src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroM.woff') format('woff');
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: 'SBAggroOTF';
+      src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroB.woff') format('woff');
+      font-weight: 700;
+    }
+
+    :root {
+      --bg:       #ffffff;
+      --border:   #615847;
+      --txt:      #615847;
+      --txt-mute: #a08c78;
+      --surface:  #FEF8FA;
+      --done-bg:  #FDD5E7;
+      --radius:   18px;
+      --slot-h:   40px; /* 30분 = 40px */
+      --font-body: 'SBAggroOTF', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    ::-webkit-scrollbar { display: none; }
+    * { -ms-overflow-style: none; scrollbar-width: none; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--txt);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    .widget-container {
+      width: 100%;
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    /* ── 헤더 ── */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 2px 12px;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 14px;
+    }
+
+    .header-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--txt);
+      letter-spacing: -0.5px;
+    }
+
+    .header-date {
+      font-size: 11px;
+      font-weight: 300;
+      color: var(--txt-mute);
+      margin-top: 3px;
+    }
+
+    .header-actions { display: flex; gap: 6px; align-items: center; }
+
+    .icon-btn {
+      background: #FEEAF1;
+      border: 1px solid #e8ddd5;
+      border-radius: 8px;
+      width: 28px; height: 28px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      color: var(--txt);
+      transition: all 0.15s;
+    }
+    .icon-btn:active { transform: scale(0.9); }
+
+    .add-btn {
+      background: var(--border);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 400;
+      font-family: var(--font-body);
+      cursor: pointer;
+      transition: opacity .2s;
+    }
+    .add-btn:hover { opacity: 0.85; }
+
+    /* ── 타임라인 ── */
+    .timeline-wrap {
+      display: flex;
+      gap: 0;
+      flex: 1;
+    }
+
+    /* 시간 레이블 */
+    .time-labels {
+      width: 44px;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .time-label {
+      height: var(--slot-h);
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-end;
+      padding-right: 8px;
+      font-size: 10px;
+      font-weight: 300;
+      color: var(--txt-mute);
+      line-height: 1;
+      padding-top: 2px;
+    }
+    .time-label.hour {
+      font-weight: 400;
+      color: var(--txt);
+      font-size: 11px;
+    }
+
+    /* 그리드 영역 */
+    .grid-area {
+      flex: 1;
+      position: relative;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    /* 슬롯 배경 */
+    .slot-row {
+      height: var(--slot-h);
+      border-bottom: 1px solid #f0e8e0;
+      position: relative;
+      cursor: crosshair;
+    }
+    .slot-row:nth-child(even) { background: #fdfaf8; }
+    .slot-row.hour-start { border-bottom: 1px solid #e8ddd5; }
+
+    /* 현재 시간 선 */
+    .now-line {
+      position: absolute;
+      left: 0; right: 0;
+      height: 2px;
+      background: #FDD5E7;
+      z-index: 20;
+      pointer-events: none;
+    }
+    .now-line::before {
+      content: '';
+      position: absolute;
+      left: -4px; top: -4px;
+      width: 10px; height: 10px;
+      background: #FDD5E7;
+      border-radius: 50%;
+    }
+
+    /* 이벤트 블록 */
+    .event-block {
+      position: absolute;
+      left: 4px; right: 4px;
+      border-radius: 8px;
+      padding: 4px 8px;
+      cursor: grab;
+      z-index: 10;
+      overflow: hidden;
+      transition: box-shadow .15s;
+      user-select: none;
+    }
+    .event-block:active { cursor: grabbing; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .event-block.dragging { opacity: 0.7; box-shadow: 0 6px 16px rgba(0,0,0,0.2); z-index: 50; }
+
+    .event-title {
+      font-size: 11px;
+      font-weight: 400;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.3;
+    }
+    .event-time {
+      font-size: 9px;
+      font-weight: 300;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.2;
+    }
+
+    /* 리사이즈 핸들 */
+    .resize-handle {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 8px;
+      cursor: ns-resize;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .resize-handle::after {
+      content: '';
+      width: 20px; height: 2px;
+      background: rgba(255,255,255,0.6);
+      border-radius: 99px;
+    }
+
+    /* 삭제 버튼 */
+    .event-delete {
+      position: absolute;
+      top: 3px; right: 4px;
+      width: 14px; height: 14px;
+      background: rgba(255,255,255,0.3);
+      border: none;
+      border-radius: 50%;
+      color: #fff;
+      font-size: 9px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .event-block:hover .event-delete { display: flex; }
+
+    /* 드래그 생성 미리보기 */
+    .drag-preview {
+      position: absolute;
+      left: 4px; right: 4px;
+      background: rgba(97,88,71,0.15);
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      z-index: 5;
+      pointer-events: none;
+      display: none;
+    }
+
+    /* ── 색상 팔레트 (이벤트 추가 모달) ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.2);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      width: 260px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+
+    .modal-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--txt);
+      margin-bottom: 14px;
+    }
+
+    .modal input[type="text"] {
+      width: 100%;
+      border: 1.5px solid #e8ddd5;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 13px;
+      font-family: var(--font-body);
+      color: var(--txt);
+      margin-bottom: 12px;
+      outline: none;
+    }
+    .modal input[type="text"]:focus { border-color: var(--border); }
+
+    .color-label {
+      font-size: 11px;
+      font-weight: 300;
+      color: var(--txt-mute);
+      margin-bottom: 8px;
+    }
+
+    .color-palette {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .color-dot {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform .15s;
+    }
+    .color-dot:hover { transform: scale(1.15); }
+    .color-dot.selected { border-color: var(--border); transform: scale(1.15); }
+
+    .modal-time {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 300;
+      color: var(--txt-mute);
+    }
+    .modal-time select {
+      border: 1.5px solid #e8ddd5;
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 12px;
+      font-family: var(--font-body);
+      color: var(--txt);
+      background: #fff;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .modal-btns {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+    .modal-btns button {
+      border: none;
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 12px;
+      font-family: var(--font-body);
+      cursor: pointer;
+      transition: opacity .2s;
+    }
+    .btn-cancel { background: #f0e8e0; color: var(--txt); }
+    .btn-save { background: var(--border); color: #fff; font-weight: 400; }
+    .btn-save:hover, .btn-cancel:hover { opacity: 0.85; }
+
+    /* 토스트 */
+    #toast {
+      position: fixed;
+      bottom: 20px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--border);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 300;
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      pointer-events: none;
+      z-index: 9998;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+<div class="widget-container">
+
+  <!-- 헤더 -->
+  <div class="header">
+    <div>
+      <div class="header-title" id="header-date">—</div>
+      <div class="header-date" id="header-sub">—</div>
+    </div>
+    <div class="header-actions">
+      <div class="icon-btn" onclick="clearAll()" title="전체 삭제">🗑</div>
+      <button class="add-btn" onclick="openModal()">+ 추가</button>
+    </div>
+  </div>
+
+  <!-- 타임라인 -->
+  <div class="timeline-wrap">
+    <div class="time-labels" id="time-labels"></div>
+    <div class="grid-area" id="grid-area">
+      <div class="drag-preview" id="drag-preview"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 이벤트 추가 모달 -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title">일정 추가</div>
+    <input type="text" id="modal-title-input" placeholder="업무 내용을 입력하세요" />
+    <div class="color-label">색상 선택</div>
+    <div class="color-palette" id="color-palette"></div>
+    <div class="modal-time">
+      <select id="modal-start"></select>
+      <span>~</span>
+      <select id="modal-end"></select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">취소</button>
+      <button class="btn-save" onclick="saveEvent()">저장</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  // ── 설정 ──────────────────────────────────────────────────
+  const START_HOUR = 8;
+  const END_HOUR   = 24;
+  const TOTAL_SLOTS = (END_HOUR - START_HOUR) * 2; // 30분 단위
+  const SLOT_H = 40; // px
+
+  const COLORS = [
+    '#c4a882', '#f0a0b8', '#82c882', '#74aee8',
+    '#c49ad6', '#f0a070', '#e8c96a', '#f08080',
+    '#D3EBAD', '#FDD5E7', '#a08c78', '#748ffc'
+  ];
+
+  let events = JSON.parse(localStorage.getItem('timetracker-events') || '[]');
+  let selectedColor = COLORS[0];
+  let dragState = null; // 이벤트 드래그
+  let createState = null; // 빈 영역 드래그로 생성
+  let resizeState = null; // 리사이즈
+
+  // ── 날짜 헤더 ────────────────────────────────────────────
+  const today = new Date();
+  const DAYS = ['일','월','화','수','목','금','토'];
+  document.getElementById('header-date').textContent =
+    `${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
+  document.getElementById('header-sub').textContent =
+    `${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일 (${DAYS[today.getDay()]})`;
+
+  // ── 시간 레이블 + 슬롯 생성 ──────────────────────────────
+  function buildGrid() {
+    const labels = document.getElementById('time-labels');
+    const grid   = document.getElementById('grid-area');
+
+    labels.innerHTML = '';
+    // 기존 슬롯만 제거 (이벤트 블록 유지)
+    grid.querySelectorAll('.slot-row').forEach(el => el.remove());
+
+    for (let i = 0; i < TOTAL_SLOTS; i++) {
+      const hour = START_HOUR + Math.floor(i / 2);
+      const min  = i % 2 === 0 ? '00' : '30';
+      const isHour = min === '00';
+
+      // 레이블
+      const lbl = document.createElement('div');
+      lbl.className = 'time-label' + (isHour ? ' hour' : '');
+      lbl.textContent = isHour ? `${hour}:00` : '';
+      labels.appendChild(lbl);
+
+      // 슬롯
+      const slot = document.createElement('div');
+      slot.className = 'slot-row' + (isHour ? ' hour-start' : '');
+      slot.dataset.slot = i;
+      grid.insertBefore(slot, grid.querySelector('.drag-preview'));
+    }
+
+    updateNowLine();
+    renderEvents();
+    setupGridEvents();
+  }
+
+  // ── 현재 시간 선 ──────────────────────────────────────────
+  function updateNowLine() {
+    const grid = document.getElementById('grid-area');
+    let line = grid.querySelector('.now-line');
+    if (!line) { line = document.createElement('div'); line.className = 'now-line'; grid.appendChild(line); }
+
+    const now = new Date();
+    const totalMins = (now.getHours() - START_HOUR) * 60 + now.getMinutes();
+    if (totalMins < 0 || totalMins > (END_HOUR - START_HOUR) * 60) {
+      line.style.display = 'none'; return;
+    }
+    line.style.display = 'block';
+    line.style.top = (totalMins / 30 * SLOT_H) + 'px';
+  }
+  setInterval(updateNowLine, 60000);
+
+  // ── 슬롯 → 시간 변환 ─────────────────────────────────────
+  function slotToTime(slot) {
+    const hour = START_HOUR + Math.floor(slot / 2);
+    const min  = slot % 2 === 0 ? '00' : '30';
+    return `${String(hour).padStart(2,'0')}:${min}`;
+  }
+
+  function timeToSlot(time) {
+    const [h, m] = time.split(':').map(Number);
+    return (h - START_HOUR) * 2 + (m >= 30 ? 1 : 0);
+  }
+
+  function yToSlot(y) {
+    return Math.max(0, Math.min(TOTAL_SLOTS - 1, Math.floor(y / SLOT_H)));
+  }
+
+  // ── 이벤트 렌더링 ─────────────────────────────────────────
+  function renderEvents() {
+    const grid = document.getElementById('grid-area');
+    grid.querySelectorAll('.event-block').forEach(el => el.remove());
+
+    events.forEach((ev, idx) => {
+      const startSlot = timeToSlot(ev.start);
+      const endSlot   = timeToSlot(ev.end);
+      const h = (endSlot - startSlot) * SLOT_H;
+      if (h <= 0) return;
+
+      const block = document.createElement('div');
+      block.className = 'event-block';
+      block.dataset.idx = idx;
+      block.style.top    = (startSlot * SLOT_H) + 'px';
+      block.style.height = h + 'px';
+      block.style.background = ev.color;
+
+      block.innerHTML = `
+        <button class="event-delete" onclick="deleteEvent(${idx})">✕</button>
+        <div class="event-title">${escHtml(ev.title || '(제목 없음)')}</div>
+        <div class="event-time">${ev.start} ~ ${ev.end}</div>
+        <div class="resize-handle"></div>
+      `;
+
+      // 더블클릭 → 제목 편집
+      block.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        editEvent(idx);
+      });
+
+      // 드래그 이동
+      block.addEventListener('mousedown', (e) => {
+        if (e.target.classList.contains('resize-handle') ||
+            e.target.classList.contains('event-delete')) return;
+        e.preventDefault();
+        const rect = document.getElementById('grid-area').getBoundingClientRect();
+        const offsetY = e.clientY - rect.top - startSlot * SLOT_H;
+        dragState = { idx, offsetY };
+        block.classList.add('dragging');
+      });
+
+      // 리사이즈
+      block.querySelector('.resize-handle').addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        resizeState = { idx };
+      });
+
+      grid.appendChild(block);
+    });
+  }
+
+  // ── 그리드 마우스 이벤트 ──────────────────────────────────
+  function setupGridEvents() {
+    const grid = document.getElementById('grid-area');
+
+    grid.addEventListener('mousedown', (e) => {
+      if (e.target.classList.contains('slot-row')) {
+        const rect = grid.getBoundingClientRect();
+        const y = e.clientY - rect.top;
+        const slot = yToSlot(y);
+        createState = { startSlot: slot, currentSlot: slot };
+        showPreview(slot, slot + 2);
+      }
+    });
+  }
+
+  document.addEventListener('mousemove', (e) => {
+    const grid = document.getElementById('grid-area');
+    const rect = grid.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const slot = yToSlot(y);
+
+    if (dragState) {
+      const newStart = Math.max(0, Math.min(TOTAL_SLOTS - 1, yToSlot(y - dragState.offsetY)));
+      const ev = events[dragState.idx];
+      const dur = timeToSlot(ev.end) - timeToSlot(ev.start);
+      const newEnd = Math.min(TOTAL_SLOTS, newStart + dur);
+      ev.start = slotToTime(newStart);
+      ev.end   = slotToTime(Math.min(newEnd, TOTAL_SLOTS));
+      renderEvents();
+      // 드래그 중인 블록 다시 dragging 클래스
+      const block = grid.querySelector(`[data-idx="${dragState.idx}"]`);
+      if (block) block.classList.add('dragging');
+    }
+
+    if (resizeState) {
+      const ev = events[resizeState.idx];
+      const startSlot = timeToSlot(ev.start);
+      const newEnd = Math.max(startSlot + 1, slot + 1);
+      ev.end = slotToTime(Math.min(newEnd, TOTAL_SLOTS));
+      renderEvents();
+    }
+
+    if (createState) {
+      createState.currentSlot = slot;
+      const s = Math.min(createState.startSlot, slot);
+      const end = Math.max(createState.startSlot, slot) + 1;
+      showPreview(s, end);
+    }
+  });
+
+  document.addEventListener('mouseup', (e) => {
+    if (dragState) {
+      saveEvents();
+      dragState = null;
+    }
+    if (resizeState) {
+      saveEvents();
+      resizeState = null;
+    }
+    if (createState) {
+      const s   = Math.min(createState.startSlot, createState.currentSlot);
+      const end = Math.max(createState.startSlot, createState.currentSlot) + 1;
+      hidePreview();
+      openModalWithTime(slotToTime(s), slotToTime(Math.min(end, TOTAL_SLOTS)));
+      createState = null;
+    }
+  });
+
+  function showPreview(startSlot, endSlot) {
+    const preview = document.getElementById('drag-preview');
+    preview.style.display = 'block';
+    preview.style.top    = (startSlot * SLOT_H) + 'px';
+    preview.style.height = ((endSlot - startSlot) * SLOT_H) + 'px';
+  }
+  function hidePreview() {
+    document.getElementById('drag-preview').style.display = 'none';
+  }
+
+  // ── 모달 ──────────────────────────────────────────────────
+  function buildModal() {
+    // 색상 팔레트
+    const palette = document.getElementById('color-palette');
+    palette.innerHTML = '';
+    COLORS.forEach(c => {
+      const dot = document.createElement('div');
+      dot.className = 'color-dot' + (c === selectedColor ? ' selected' : '');
+      dot.style.background = c;
+      dot.addEventListener('click', () => {
+        selectedColor = c;
+        document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+        dot.classList.add('selected');
+      });
+      palette.appendChild(dot);
+    });
+
+    // 시간 셀렉트
+    const startSel = document.getElementById('modal-start');
+    const endSel   = document.getElementById('modal-end');
+    startSel.innerHTML = '';
+    endSel.innerHTML = '';
+    for (let i = 0; i <= TOTAL_SLOTS; i++) {
+      const t = slotToTime(Math.min(i, TOTAL_SLOTS - 1));
+      const tEnd = i === TOTAL_SLOTS ? `${END_HOUR}:00` : slotToTime(i);
+      if (i < TOTAL_SLOTS) {
+        const opt = document.createElement('option');
+        opt.value = t; opt.textContent = t;
+        startSel.appendChild(opt);
+      }
+      const opt2 = document.createElement('option');
+      opt2.value = tEnd; opt2.textContent = tEnd;
+      endSel.appendChild(opt2);
+    }
+  }
+
+  function openModal() {
+    buildModal();
+    document.getElementById('modal-title-input').value = '';
+    document.getElementById('modal-overlay').classList.add('open');
+    document.getElementById('modal-title-input').focus();
+    delete document.getElementById('modal-overlay').dataset.editIdx;
+  }
+
+  function openModalWithTime(start, end) {
+    buildModal();
+    document.getElementById('modal-title-input').value = '';
+    document.getElementById('modal-start').value = start;
+    document.getElementById('modal-end').value = end;
+    document.getElementById('modal-overlay').classList.add('open');
+    document.getElementById('modal-title-input').focus();
+    delete document.getElementById('modal-overlay').dataset.editIdx;
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+
+  function saveEvent() {
+    const title = document.getElementById('modal-title-input').value.trim();
+    const start = document.getElementById('modal-start').value;
+    const end   = document.getElementById('modal-end').value;
+    const overlay = document.getElementById('modal-overlay');
+
+    if (start >= end) { showToast('종료 시간이 시작 시간보다 늦어야 해요!'); return; }
+
+    const editIdx = overlay.dataset.editIdx;
+    if (editIdx !== undefined) {
+      events[parseInt(editIdx)] = { title, start, end, color: selectedColor };
+    } else {
+      events.push({ title, start, end, color: selectedColor });
+    }
+
+    saveEvents();
+    closeModal();
+    showToast(title ? `"${title}" 추가됨!` : '일정 추가됨!');
+  }
+
+  function editEvent(idx) {
+    const ev = events[idx];
+    buildModal();
+    document.getElementById('modal-title-input').value = ev.title || '';
+    document.getElementById('modal-start').value = ev.start;
+    document.getElementById('modal-end').value = ev.end;
+    selectedColor = ev.color;
+    document.querySelectorAll('.color-dot').forEach(d => {
+      d.classList.toggle('selected', d.style.background === ev.color ||
+        d.style.backgroundColor === ev.color);
+    });
+    document.getElementById('modal-overlay').classList.add('open');
+    document.getElementById('modal-overlay').dataset.editIdx = idx;
+  }
+
+  function deleteEvent(idx) {
+    events.splice(idx, 1);
+    saveEvents();
+    showToast('삭제됐어요!');
+  }
+
+  function clearAll() {
+    if (!confirm('모든 일정을 삭제할까요?')) return;
+    events = [];
+    saveEvents();
+    showToast('전체 삭제됐어요!');
+  }
+
+  // ── 저장 ──────────────────────────────────────────────────
+  function saveEvents() {
+    localStorage.setItem('timetracker-events', JSON.stringify(events));
+    renderEvents();
+  }
+
+  // ── 토스트 ────────────────────────────────────────────────
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // Enter 키로 저장
+  document.getElementById('modal-title-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') saveEvent();
+    if (e.key === 'Escape') closeModal();
+  });
+
+  // ── 초기화 ────────────────────────────────────────────────
+  buildGrid();
+</script>
+</body>
+</html>
