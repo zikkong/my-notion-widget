@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Date Widget</title>
+  <style>
+    @font-face { font-family:'SBAggroOTF'; src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroL.woff') format('woff'); font-weight:300; }
+    @font-face { font-family:'SBAggroOTF'; src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroB.woff') format('woff'); font-weight:700; }
+
+    * { box-sizing:border-box; margin:0; padding:0; }
+
+    body {
+      font-family: 'SBAggroOTF', sans-serif;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 340px;
+      background: #ffffff;
+      border: 2px solid #615847;
+      border-radius: 20px;
+      padding: 28px 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* 배경 점 패턴 */
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(#f0e8e0 1.2px, transparent 0),
+        radial-gradient(#f0e8e0 1.2px, transparent 0);
+      background-size: 24px 24px;
+      background-position: 0 0, 12px 12px;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .inner { position: relative; z-index: 1; }
+
+    .year-row {
+      font-size: 12px;
+      font-weight: 300;
+      color: #a08c78;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+
+    .date-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .month-day {
+      font-size: 56px;
+      font-weight: 700;
+      color: #3d2f22;
+      line-height: 1;
+      letter-spacing: -2px;
+    }
+
+    .day-of-week {
+      font-size: 20px;
+      font-weight: 300;
+      color: #615847;
+      padding-bottom: 6px;
+      letter-spacing: -0.5px;
+    }
+
+    /* 하단 구분선 + 음력/주차 */
+    .sub-row {
+      border-top: 1.5px solid #e8ddd5;
+      padding-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .week-info {
+      font-size: 11px;
+      font-weight: 300;
+      color: #a08c78;
+    }
+
+    .dot-today {
+      width: 8px; height: 8px;
+      background: #FDD5E7;
+      border: 1.5px solid #615847;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="inner">
+    <div class="year-row" id="year-row">—</div>
+    <div class="date-row">
+      <div class="month-day" id="month-day">—</div>
+      <div class="day-of-week" id="day-of-week">—</div>
+    </div>
+    <div class="sub-row">
+      <div class="week-info" id="week-info">—</div>
+      <div class="dot-today"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const DAYS_KO = ['일요일','월요일','화요일','수요일','목요일','금요일','토요일'];
+  const MONTHS  = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+  function getWeekNumber(d) {
+    const date = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const dayNum = date.getDay() || 7;
+    date.setDate(date.getDate() + 4 - dayNum);
+    const yearStart = new Date(date.getFullYear(), 0, 1);
+    return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+  }
+
+  function pad(n) { return String(n).padStart(2,'0'); }
+
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  const d = now.getDate();
+  const dow = now.getDay();
+  const week = getWeekNumber(now);
+
+  document.getElementById('year-row').textContent   = `${y}년 ${MONTHS[m]}`;
+  document.getElementById('month-day').textContent  = `${pad(m+1)}.${pad(d)}`;
+  document.getElementById('day-of-week').textContent = DAYS_KO[dow];
+  document.getElementById('week-info').textContent   = `${y}년 ${week}번째 주`;
+</script>
+</body>
+</html>
