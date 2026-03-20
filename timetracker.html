@@ -1,325 +1,116 @@
 <!DOCTYPE html>
+
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Time Tracker</title>
   <style>
-    @font-face {
-      font-family: 'SBAggroOTF';
-      src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroL.woff') format('woff');
-      font-weight: 300;
-    }
-    @font-face {
-      font-family: 'SBAggroOTF';
-      src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroM.woff') format('woff');
-      font-weight: 400;
-    }
-    @font-face {
-      font-family: 'SBAggroOTF';
-      src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroB.woff') format('woff');
-      font-weight: 700;
-    }
+    @font-face { font-family: 'SBAggroOTF'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroL.woff') format('woff'); font-weight: 300; }
+    @font-face { font-family: 'SBAggroOTF'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroM.woff') format('woff'); font-weight: 400; }
+    @font-face { font-family: 'SBAggroOTF'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroB.woff') format('woff'); font-weight: 700; }
 
-    :root {
-      --bg:        #ffffff;
-      --border:    #615847;
-      --txt:       #615847;
-      --txt-mute:  #a08c78;
-      --radius:    18px;
-      --cell-h:    44px;
-      --label-w:   48px;
-      --font-body: 'SBAggroOTF', sans-serif;
-    }
+```
+:root {
+  --bg:#ffffff; --border:#615847; --txt:#615847; --txt-mute:#a08c78;
+  --radius:18px; --row-h:52px; --label-w:48px; --font-body:'SBAggroOTF',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+::-webkit-scrollbar{display:none;}
+*{-ms-overflow-style:none;scrollbar-width:none;}
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    ::-webkit-scrollbar { display: none; }
-    * { -ms-overflow-style: none; scrollbar-width: none; }
+body{font-family:var(--font-body);background:var(--bg);color:var(--txt);height:100vh;display:flex;justify-content:center;overflow:hidden;}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;border:2px solid var(--border);border-radius:var(--radius);pointer-events:none;z-index:9999;}
 
-    body {
-      font-family: var(--font-body);
-      background: var(--bg);
-      color: var(--txt);
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      overflow: hidden;
-      position: relative;
-    }
+.widget-container{width:100%;display:flex;flex-direction:column;height:100vh;}
+.header-wrap{flex-shrink:0;padding:16px 16px 0;background:var(--bg);}
+.header{display:flex;justify-content:space-between;align-items:center;padding:0 2px 12px;border-bottom:2px solid var(--border);margin-bottom:10px;}
+.header-title{font-size:22px;font-weight:700;letter-spacing:-0.5px;}
+.header-date{font-size:11px;font-weight:300;color:var(--txt-mute);margin-top:3px;}
+.header-actions{display:flex;gap:6px;align-items:center;}
+.icon-btn{background:#FEEAF1;border:1px solid #e8ddd5;border-radius:8px;width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--txt);}
+.icon-btn:active{transform:scale(0.9);}
+.add-btn{background:var(--border);color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-family:var(--font-body);cursor:pointer;}
 
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      border: 2px solid var(--border);
-      border-radius: var(--radius);
-      pointer-events: none;
-      z-index: 9999;
-    }
+.timeline-outer{flex:1;overflow-y:auto;padding:0 16px 16px;}
+.timeline-wrap{display:flex;gap:0;}
+.time-labels{width:var(--label-w);flex-shrink:0;}
+.time-label{height:var(--row-h);display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-size:11px;font-weight:400;color:var(--txt);}
 
-    .widget-container {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
+.grid-area{flex:1;border:1.5px solid var(--border);border-radius:12px;overflow:hidden;position:relative;background:#fff;}
 
-    /* ── 헤더 ── */
-    .header-wrap {
-      flex-shrink: 0;
-      padding: 16px 16px 0;
-      background: var(--bg);
-    }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 2px 12px;
-      border-bottom: 2px solid var(--border);
-      margin-bottom: 10px;
-    }
-    .header-title { font-size: 22px; font-weight: 700; color: var(--txt); letter-spacing: -0.5px; }
-    .header-date  { font-size: 11px; font-weight: 300; color: var(--txt-mute); margin-top: 3px; }
-    .header-actions { display: flex; gap: 6px; align-items: center; }
+.hour-row{height:var(--row-h);display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #e8ddd5;position:relative;}
+.hour-row:last-child{border-bottom:none;}
 
-    .icon-btn {
-      background: #FEEAF1;
-      border: 1px solid #e8ddd5;
-      border-radius: 8px;
-      width: 28px; height: 28px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px; color: var(--txt);
-    }
-    .icon-btn:active { transform: scale(0.9); }
+.slot-cell{position:relative;cursor:crosshair;transition:background .1s;overflow:hidden;}
+.slot-cell:first-child{border-right:1px dashed #e0d4c8;}
+.slot-cell:hover{background:rgba(97,88,71,0.05);}
+.slot-label{position:absolute;top:4px;left:5px;font-size:9px;font-weight:300;color:var(--txt-mute);pointer-events:none;user-select:none;}
+.slot-cell.selecting{background:rgba(97,88,71,0.12)!important;outline:2px dashed var(--border);outline-offset:-2px;z-index:5;}
 
-    .add-btn {
-      background: var(--border);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 5px 12px;
-      font-size: 12px;
-      font-family: var(--font-body);
-      cursor: pointer;
-    }
+.now-line{position:absolute;left:0;right:0;height:2px;background:#FDD5E7;z-index:20;pointer-events:none;}
+.now-line::before{content:'';position:absolute;right:-4px;top:-4px;width:10px;height:10px;background:#FDD5E7;border-radius:50%;}
 
-    /* ── 스크롤 영역 ── */
-    .timeline-outer {
-      flex: 1;
-      overflow-y: auto;
-      padding: 0 16px 16px;
-    }
+.event-block{position:absolute;border-radius:6px;padding:3px 7px;z-index:10;overflow:hidden;cursor:pointer;user-select:none;}
+.event-title{font-size:11px;font-weight:400;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;}
+.event-time-lbl{font-size:9px;font-weight:300;color:rgba(255,255,255,0.8);}
+.event-delete{position:absolute;top:3px;right:4px;width:14px;height:14px;background:rgba(255,255,255,0.3);border:none;border-radius:50%;color:#fff;font-size:8px;cursor:pointer;display:none;align-items:center;justify-content:center;}
+.event-block:hover .event-delete{display:flex;}
 
-    /* ── 그리드 ── */
-    .timeline-wrap { display: flex; }
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.2);z-index:200;display:none;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border:2px solid var(--border);border-radius:var(--radius);padding:20px;width:260px;box-shadow:0 8px 24px rgba(0,0,0,0.12);}
+.modal-title{font-size:14px;font-weight:700;color:var(--txt);margin-bottom:6px;}
+.modal-range{font-size:12px;font-weight:300;color:var(--txt-mute);margin-bottom:12px;}
+.modal input[type="text"]{width:100%;border:1.5px solid #e8ddd5;border-radius:8px;padding:8px 10px;font-size:13px;font-family:var(--font-body);color:var(--txt);margin-bottom:12px;outline:none;}
+.modal input[type="text"]:focus{border-color:var(--border);}
+.color-label{font-size:11px;font-weight:300;color:var(--txt-mute);margin-bottom:8px;}
+.color-palette{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.color-dot{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .15s;}
+.color-dot:hover{transform:scale(1.15);}
+.color-dot.selected{border-color:var(--border);transform:scale(1.15);}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;}
+.modal-btns button{border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-family:var(--font-body);cursor:pointer;}
+.btn-cancel{background:#f0e8e0;color:var(--txt);}
+.btn-save{background:var(--border);color:#fff;font-weight:400;}
 
-    .time-labels {
-      width: var(--label-w);
-      flex-shrink: 0;
-    }
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--border);color:#fff;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:300;transition:transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275);pointer-events:none;z-index:9998;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+```
 
-    /* 레이블은 1시간마다 = 2칸 높이 */
-    .time-label {
-      height: calc(var(--cell-h) * 2);
-      display: flex;
-      align-items: flex-start;
-      justify-content: flex-end;
-      padding-right: 8px;
-      padding-top: 3px;
-      font-size: 11px;
-      font-weight: 400;
-      color: var(--txt);
-    }
-
-    .grid-area {
-      flex: 1;
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-      background: #fff;
-    }
-
-    /* 1시간 = 2행 (각 30분) */
-    .hour-block { display: flex; flex-direction: column; }
-    .hour-block:last-child .half-row:last-child { border-bottom: none; }
-
-    .half-row {
-      height: var(--cell-h);
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      border-bottom: 1px solid #f0e8e0;
-      position: relative;
-    }
-    .half-row.first-half { border-bottom: 1px dashed #e8ddd5; }
-    .half-row.second-half { border-bottom: 1px solid #e0d4cc; }
-
-    /* 30분 셀 */
-    .slot-cell {
-      position: relative;
-      border-right: 1px solid #f0e8e0;
-      cursor: crosshair;
-      transition: background .1s;
-    }
-    .slot-cell:last-child { border-right: none; }
-    .slot-cell:hover { background: rgba(97,88,71,0.04); }
-
-    .slot-label {
-      position: absolute;
-      top: 3px; left: 4px;
-      font-size: 9px;
-      font-weight: 300;
-      color: var(--txt-mute);
-      pointer-events: none;
-      user-select: none;
-    }
-
-    /* 현재 시간 선 */
-    .now-marker {
-      position: absolute;
-      left: 0; right: 0;
-      height: 2px;
-      background: #FDD5E7;
-      z-index: 20;
-      pointer-events: none;
-    }
-    .now-marker::before {
-      content: '';
-      position: absolute;
-      right: -4px; top: -4px;
-      width: 10px; height: 10px;
-      background: #FDD5E7;
-      border-radius: 50%;
-    }
-
-    /* 이벤트 블록 - 셀 위에 absolute로 올라감 */
-    .event-block {
-      position: absolute;
-      top: 2px; bottom: 2px;
-      left: 2px; right: 2px;
-      border-radius: 6px;
-      padding: 2px 6px;
-      z-index: 10;
-      cursor: pointer;
-      overflow: hidden;
-      user-select: none;
-    }
-    .event-block:hover .event-delete { display: flex; }
-
-    .event-title {
-      font-size: 11px;
-      font-weight: 400;
-      color: #fff;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      line-height: var(--cell-h);
-    }
-
-    .event-delete {
-      position: absolute;
-      top: 2px; right: 3px;
-      width: 14px; height: 14px;
-      background: rgba(255,255,255,0.35);
-      border: none;
-      border-radius: 50%;
-      color: #fff;
-      font-size: 8px;
-      cursor: pointer;
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* 드래그 선택 하이라이트 */
-    .slot-cell.selecting { background: rgba(97,88,71,0.12) !important; outline: 2px dashed var(--border); outline-offset: -2px; }
-    .slot-cell.selected-event { }
-
-    /* ── 모달 ── */
-    .modal-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.2);
-      z-index: 200;
-      display: none; align-items: center; justify-content: center;
-    }
-    .modal-overlay.open { display: flex; }
-
-    .modal {
-      background: #fff;
-      border: 2px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px; width: 260px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-    }
-    .modal-title { font-size: 14px; font-weight: 700; color: var(--txt); margin-bottom: 14px; }
-    .modal-time-info { font-size: 12px; font-weight: 300; color: var(--txt-mute); margin-bottom: 12px; }
-
-    .modal input[type="text"] {
-      width: 100%; border: 1.5px solid #e8ddd5; border-radius: 8px;
-      padding: 8px 10px; font-size: 13px; font-family: var(--font-body);
-      color: var(--txt); margin-bottom: 12px; outline: none;
-    }
-    .modal input[type="text"]:focus { border-color: var(--border); }
-
-    .color-label { font-size: 11px; font-weight: 300; color: var(--txt-mute); margin-bottom: 8px; }
-    .color-palette { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-    .color-dot {
-      width: 24px; height: 24px; border-radius: 50%;
-      cursor: pointer; border: 2px solid transparent; transition: transform .15s;
-    }
-    .color-dot:hover { transform: scale(1.15); }
-    .color-dot.selected { border-color: var(--border); transform: scale(1.15); }
-
-    .modal-btns { display: flex; gap: 8px; justify-content: flex-end; }
-    .modal-btns button {
-      border: none; border-radius: 8px; padding: 7px 14px;
-      font-size: 12px; font-family: var(--font-body); cursor: pointer;
-    }
-    .btn-cancel { background: #f0e8e0; color: var(--txt); }
-    .btn-save   { background: var(--border); color: #fff; font-weight: 400; }
-
-    #toast {
-      position: fixed; bottom: 20px; left: 50%;
-      transform: translateX(-50%) translateY(80px);
-      background: var(--border); color: #fff;
-      padding: 8px 16px; border-radius: 20px;
-      font-size: 12px; font-weight: 300;
-      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      pointer-events: none; z-index: 9998;
-    }
-    #toast.show { transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
 <div class="widget-container">
-
   <div class="header-wrap">
     <div class="header">
       <div>
-        <div class="header-title" id="header-date">—</div>
-        <div class="header-date"  id="header-sub">—</div>
+        <div class="header-title" id="hd">—</div>
+        <div class="header-date"  id="hs">—</div>
       </div>
       <div class="header-actions">
-        <div class="icon-btn" onclick="clearAll()" title="전체 삭제">🗑</div>
-        <button class="add-btn" onclick="openModal(null)">+ 추가</button>
+        <div class="icon-btn" onclick="clearAll()">🗑</div>
+        <button class="add-btn" onclick="openModalManual()">+ 추가</button>
       </div>
     </div>
   </div>
-
   <div class="timeline-outer" id="timeline-outer">
     <div class="timeline-wrap">
       <div class="time-labels" id="time-labels"></div>
       <div class="grid-area"   id="grid-area"></div>
     </div>
   </div>
-
 </div>
 
-<!-- 모달 -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
     <div class="modal-title">일정 추가</div>
-    <div class="modal-time-info" id="modal-time-info"></div>
+    <div class="modal-range" id="modal-range"></div>
+    <div id="modal-time-row" style="display:none;gap:6px;align-items:center;margin-bottom:12px;font-size:12px;font-weight:300;color:#a08c78;">
+      <select id="modal-start-sel" style="border:1.5px solid #e8ddd5;border-radius:8px;padding:6px 8px;font-size:12px;font-family:'SBAggroOTF',sans-serif;color:#615847;background:#fff;outline:none;cursor:pointer;flex:1;"></select>
+      <span>~</span>
+      <select id="modal-end-sel" style="border:1.5px solid #e8ddd5;border-radius:8px;padding:6px 8px;font-size:12px;font-family:'SBAggroOTF',sans-serif;color:#615847;background:#fff;outline:none;cursor:pointer;flex:1;"></select>
+    </div>
     <input type="text" id="modal-input" placeholder="업무 내용을 입력하세요" />
     <div class="color-label">색상 선택</div>
     <div class="color-palette" id="color-palette"></div>
@@ -329,327 +120,293 @@
     </div>
   </div>
 </div>
-
 <div id="toast"></div>
 
 <script>
-  const START_HOUR = 8;
-  const END_HOUR   = 24;
-  const CELL_H     = 44; // px (30분 셀 높이, CSS --cell-h 와 동일)
+  const START=8,END=24,ROW_H=52;
+  const COLORS=['#c4a882','#f0a0b8','#82c882','#74aee8','#c49ad6','#f0a070','#e8c96a','#f08080','#D3EBAD','#FDD5E7','#a08c78','#748ffc'];
+  const SLOTS=[];
+  function pad(n){return String(n).padStart(2,'0');}
+  for(let h=START;h<END;h++){SLOTS.push(`${pad(h)}:00`);SLOTS.push(`${pad(h)}:30`);}
+  function slotIdx(k){return SLOTS.indexOf(k);}
+  function endTime(k){const i=slotIdx(k);if(i<0||i>=SLOTS.length-1)return`${pad(END)}:00`;return SLOTS[i+1];}
 
-  const COLORS = [
-    '#c4a882','#f0a0b8','#82c882','#74aee8',
-    '#c49ad6','#f0a070','#e8c96a','#f08080',
-    '#D3EBAD','#FDD5E7','#a08c78','#748ffc'
-  ];
+  let events=JSON.parse(localStorage.getItem('tt-v3')||'[]');
+  let selColor=COLORS[0];
+  let dragA=null,dragB=null,dragging=false;
 
-  // events: [{ start: 'HH:MM', end: 'HH:MM', title, color }]
-  let events = JSON.parse(localStorage.getItem('timetracker-v2') || '[]');
-  let selectedColor = COLORS[0];
+  const today=new Date();
+  const DAYS=['일','월','화','수','목','금','토'];
+  document.getElementById('hd').textContent=`${pad(today.getMonth()+1)}.${pad(today.getDate())}`;
+  document.getElementById('hs').textContent=`${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일 (${DAYS[today.getDay()]})`;
 
-  // 드래그 상태
-  let dragStart = null; // { slotKey }
-  let dragCurrent = null;
-  let isDragging = false;
-
-  // 날짜
-  const today = new Date();
-  const DAYS  = ['일','월','화','수','목','금','토'];
-  document.getElementById('header-date').textContent =
-    `${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
-  document.getElementById('header-sub').textContent =
-    `${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일 (${DAYS[today.getDay()]})`;
-
-  // ── 슬롯 키 유틸 ─────────────────────────────────────────
-  // slotKey: "HH:MM" (30분 단위)
-  function makeSlots() {
-    const slots = [];
-    for (let h = START_HOUR; h < END_HOUR; h++) {
-      slots.push(`${String(h).padStart(2,'0')}:00`);
-      slots.push(`${String(h).padStart(2,'0')}:30`);
-    }
-    return slots;
-  }
-  const ALL_SLOTS = makeSlots();
-
-  function slotIndex(key) { return ALL_SLOTS.indexOf(key); }
-
-  function nextSlot(key) {
-    const idx = slotIndex(key);
-    if (idx < 0 || idx >= ALL_SLOTS.length - 1) {
-      // 마지막 슬롯의 끝 = END_HOUR:00
-      return `${String(END_HOUR).padStart(2,'0')}:00`;
-    }
-    return ALL_SLOTS[idx + 1];
-  }
-
-  // ── 그리드 생성 ───────────────────────────────────────────
-  function buildGrid() {
-    const labels = document.getElementById('time-labels');
-    const grid   = document.getElementById('grid-area');
-    labels.innerHTML = '';
-    grid.innerHTML   = '';
-
-    for (let h = START_HOUR; h < END_HOUR; h++) {
-      // 레이블 (1시간 = 2셀 높이)
-      const lbl = document.createElement('div');
-      lbl.className = 'time-label';
-      lbl.textContent = `${h}:00`;
+  function buildGrid(){
+    const labels=document.getElementById('time-labels');
+    const grid=document.getElementById('grid-area');
+    labels.innerHTML=grid.innerHTML='';
+    for(let h=START;h<END;h++){
+      const lbl=document.createElement('div');
+      lbl.className='time-label';
+      lbl.textContent=`${h}:00`;
       labels.appendChild(lbl);
-
-      // 1시간 블록
-      const hBlock = document.createElement('div');
-      hBlock.className = 'hour-block';
-      hBlock.dataset.hour = h;
-
-      // :00 행
-      const row1 = document.createElement('div');
-      row1.className = 'half-row first-half';
-      // :30 행
-      const row2 = document.createElement('div');
-      row2.className = 'half-row second-half';
-
-      // 각 행에 2개 셀 (:00 왼/오, :30 왼/오 → 사실 각 행은 하나의 30분 슬롯)
-      // 여기선 1행 = 30분 = 1슬롯으로 처리
-      // 왼쪽/오른쪽은 같은 슬롯이므로 셀 자체가 슬롯
-      const cell1 = makeCellFull(`${String(h).padStart(2,'0')}:00`);
-      const cell2 = makeCellFull(`${String(h).padStart(2,'0')}:30`);
-
-      row1.appendChild(cell1);
-      row2.appendChild(cell2);
-      hBlock.appendChild(row1);
-      hBlock.appendChild(row2);
-      grid.appendChild(hBlock);
+      const row=document.createElement('div');
+      row.className='hour-row';
+      [`${pad(h)}:00`,`${pad(h)}:30`].forEach(slot=>{
+        const cell=document.createElement('div');
+        cell.className='slot-cell';
+        cell.dataset.slot=slot;
+        const l=document.createElement('span');
+        l.className='slot-label';
+        l.textContent=slot;
+        cell.appendChild(l);
+        cell.addEventListener('mousedown',e=>{
+          if(e.button!==0)return;
+          e.preventDefault();
+          dragging=true;dragA=dragB=slot;highlight();
+        });
+        cell.addEventListener('mouseenter',()=>{
+          if(!dragging)return;dragB=slot;highlight();
+        });
+        row.appendChild(cell);
+      });
+      grid.appendChild(row);
     }
-
-    // 현재 시간 선
-    updateNowLine();
-    renderEvents();
+    updateNowLine();renderEvents();
   }
 
-  function makeCellFull(slotKey) {
-    const cell = document.createElement('div');
-    cell.className = 'slot-cell';
-    cell.dataset.slot = slotKey;
-    cell.style.gridColumn = '1 / -1'; // 전체 너비
-
-    const lbl = document.createElement('span');
-    lbl.className = 'slot-label';
-    lbl.textContent = slotKey;
-    cell.appendChild(lbl);
-
-    // 마우스 이벤트
-    cell.addEventListener('mousedown', onCellMousedown);
-    cell.addEventListener('mouseenter', onCellMouseenter);
-
-    return cell;
-  }
-
-  // ── 드래그 선택 ───────────────────────────────────────────
-  function onCellMousedown(e) {
-    if (e.button !== 0) return;
-    e.preventDefault();
-    dragStart   = this.dataset.slot;
-    dragCurrent = this.dataset.slot;
-    isDragging  = true;
-    highlightRange(dragStart, dragCurrent);
-  }
-
-  function onCellMouseenter() {
-    if (!isDragging) return;
-    dragCurrent = this.dataset.slot;
-    highlightRange(dragStart, dragCurrent);
-  }
-
-  document.addEventListener('mouseup', (e) => {
-    if (!isDragging) return;
-    isDragging = false;
-    const s = slotIndex(dragStart) <= slotIndex(dragCurrent) ? dragStart : dragCurrent;
-    const eKey = slotIndex(dragStart) <= slotIndex(dragCurrent) ? dragCurrent : dragStart;
-    clearHighlight();
-    openModal({ start: s, end: nextSlot(eKey) });
-    dragStart = dragCurrent = null;
-  });
-
-  function highlightRange(a, b) {
-    clearHighlight();
-    const ia = slotIndex(a), ib = slotIndex(b);
-    const lo = Math.min(ia, ib), hi = Math.max(ia, ib);
-    document.querySelectorAll('.slot-cell').forEach(c => {
-      const idx = slotIndex(c.dataset.slot);
-      if (idx >= lo && idx <= hi) c.classList.add('selecting');
+  function highlight(){
+    document.querySelectorAll('.slot-cell.selecting').forEach(c=>c.classList.remove('selecting'));
+    if(!dragA||!dragB)return;
+    const lo=Math.min(slotIdx(dragA),slotIdx(dragB));
+    const hi=Math.max(slotIdx(dragA),slotIdx(dragB));
+    document.querySelectorAll('.slot-cell').forEach(c=>{
+      const i=slotIdx(c.dataset.slot);
+      if(i>=lo&&i<=hi)c.classList.add('selecting');
     });
   }
 
-  function clearHighlight() {
-    document.querySelectorAll('.slot-cell.selecting').forEach(c => c.classList.remove('selecting'));
+  document.addEventListener('mouseup',()=>{
+    if(!dragging)return;
+    dragging=false;
+    document.querySelectorAll('.slot-cell.selecting').forEach(c=>c.classList.remove('selecting'));
+    if(!dragA||!dragB)return;
+    const lo=SLOTS[Math.min(slotIdx(dragA),slotIdx(dragB))];
+    const hi=SLOTS[Math.max(slotIdx(dragA),slotIdx(dragB))];
+    openModal(lo,endTime(hi));
+    dragA=dragB=null;
+  });
+
+  function updateNowLine(){
+    const grid=document.getElementById('grid-area');
+    document.querySelectorAll('.now-line').forEach(e=>e.remove());
+    const now=new Date();
+    const mins=(now.getHours()-START)*60+now.getMinutes();
+    if(mins<0||mins>(END-START)*60)return;
+    const line=document.createElement('div');
+    line.className='now-line';
+    line.style.top=(mins/60*ROW_H)+'px';
+    grid.appendChild(line);
   }
+  setInterval(updateNowLine,60000);
 
-  // ── 현재 시간 선 ──────────────────────────────────────────
-  function updateNowLine() {
-    const grid = document.getElementById('grid-area');
-    document.querySelectorAll('.now-marker').forEach(el => el.remove());
+  function renderEvents(){
+    const grid=document.getElementById('grid-area');
+    document.querySelectorAll('.event-block').forEach(e=>e.remove());
+    events.forEach((ev,idx)=>{
+      const si=slotIdx(ev.start);
+      const ei=slotIdx(ev.end); // end exclusive
+      if(si<0)return;
+      const span=ei>0?ei-si:1;
+      const HALF=ROW_H/2;
 
-    const now  = new Date();
-    const mins = (now.getHours() - START_HOUR) * 60 + now.getMinutes();
-    if (mins < 0 || mins > (END_HOUR - START_HOUR) * 60) return;
+      // si가 짝수(:00)면 왼쪽 시작, 홀수(:30)면 오른쪽 시작
+      const startIsLeft = si%2===0;
 
-    const topPx = (mins / 30) * CELL_H;
-    const marker = document.createElement('div');
-    marker.className = 'now-marker';
-    marker.style.top = topPx + 'px';
-    marker.style.position = 'absolute';
-    marker.style.left = '0'; marker.style.right = '0';
-    grid.style.position = 'relative';
-    grid.appendChild(marker);
-  }
-  setInterval(updateNowLine, 60000);
+      // 전체 행 수 계산
+      // 왼쪽 시작이면: 왼쪽부터 시작해서 span개 슬롯
+      // 오른쪽 시작이면: 오른쪽부터 시작
 
-  // ── 이벤트 렌더링 ─────────────────────────────────────────
-  function renderEvents() {
-    document.querySelectorAll('.event-block').forEach(el => el.remove());
-    const grid = document.getElementById('grid-area');
+      const block=document.createElement('div');
+      block.className='event-block';
+      block.style.background=ev.color;
 
-    events.forEach((ev, idx) => {
-      const startIdx = slotIndex(ev.start);
-      const endIdx   = slotIndex(ev.end) - 1; // end는 exclusive
-      if (startIdx < 0) return;
+      // top은 행 단위 (ROW_H)로 계산
+      // si가 짝수(:00)이면 행의 위쪽, 홀수(:30)이면 행의 아래쪽
+      const rowIdx = Math.floor(si / 2); // 몇 번째 행인가
+      const topPx = rowIdx * ROW_H;
 
-      const spanCount = Math.max(1, slotIndex(ev.end) - startIdx);
-      const topPx  = startIdx * CELL_H;
-      const height = spanCount * CELL_H - 4;
+      if(span===1){
+        // 30분: 세로는 행 전체, 가로는 절반
+        block.style.top = topPx+'px';
+        block.style.height = ROW_H+'px';
+        if(startIsLeft){
+          block.style.left='1px';
+          block.style.right='calc(50% + 1px)';
+        } else {
+          block.style.left='calc(50% + 1px)';
+          block.style.right='1px';
+        }
+      } else if(span===2 && startIsLeft){
+        // 1시간 정확히: 한 줄 전체
+        block.style.top = topPx+'px';
+        block.style.height = ROW_H+'px';
+        block.style.left='1px';
+        block.style.right='1px';
+      } else {
+        // 여러 줄
+        const endRowIdx = Math.ceil((si + span) / 2);
+        block.style.top = topPx+'px';
+        block.style.height = ((endRowIdx - rowIdx) * ROW_H)+'px';
+        if(startIsLeft){
+          block.style.left='1px';
+          block.style.right='1px';
+        } else {
+          block.style.left='calc(50% + 1px)';
+          block.style.right='1px';
+        }
+      }
 
-      const block = document.createElement('div');
-      block.className = 'event-block';
-      block.style.cssText = `
-        top: ${topPx + 2}px;
-        height: ${height}px;
-        left: 2px; right: 2px;
-        background: ${ev.color};
-        position: absolute;
-      `;
-
-      block.innerHTML = `
+      block.innerHTML=`
         <button class="event-delete" onclick="deleteEvent(${idx})">✕</button>
-        <div class="event-title">${escHtml(ev.title || '(제목 없음)')}</div>`;
-
-      block.addEventListener('dblclick', () => editEvent(idx));
-
+        <div class="event-title">${escHtml(ev.title||'(제목 없음)')}</div>
+        <div class="event-time-lbl">${ev.start}~${ev.end}</div>`;
+      block.addEventListener('dblclick',()=>editEvent(idx));
       grid.appendChild(block);
     });
   }
 
-  // ── 모달 ──────────────────────────────────────────────────
-  function openModal(range) {
-    // 색상 팔레트
-    const palette = document.getElementById('color-palette');
-    palette.innerHTML = '';
-    COLORS.forEach(c => {
-      const dot = document.createElement('div');
-      dot.className = 'color-dot' + (c === selectedColor ? ' selected' : '');
-      dot.style.background = c;
-      dot.addEventListener('click', () => {
-        selectedColor = c;
-        document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
-        dot.classList.add('selected');
-      });
-      palette.appendChild(dot);
+  function buildPalette(){
+    const p=document.getElementById('color-palette');
+    p.innerHTML='';
+    COLORS.forEach(c=>{
+      const d=document.createElement('div');
+      d.className='color-dot'+(c===selColor?' selected':'');
+      d.style.background=c;
+      d.onclick=()=>{selColor=c;document.querySelectorAll('.color-dot').forEach(x=>x.classList.remove('selected'));d.classList.add('selected');};
+      p.appendChild(d);
     });
+  }
 
-    document.getElementById('modal-input').value = '';
-    const overlay = document.getElementById('modal-overlay');
+  function buildTimeSels(){
+    const startSel = document.getElementById('modal-start-sel');
+    const endSel   = document.getElementById('modal-end-sel');
+    startSel.innerHTML = '';
+    endSel.innerHTML   = '';
+    // 종료 시간은 START+1개부터
+    SLOTS.forEach(s => {
+      const o = document.createElement('option');
+      o.value = s; o.textContent = s;
+      startSel.appendChild(o);
+    });
+    // 종료 시간 = 슬롯 + END:00
+    [...SLOTS, `${pad(END)}:00`].forEach(s => {
+      const o = document.createElement('option');
+      o.value = s; o.textContent = s;
+      endSel.appendChild(o);
+    });
+    // 현재 시간에 가장 가까운 슬롯으로 기본값
+    const now = new Date();
+    const nowStr = `${pad(now.getHours())}:${now.getMinutes()<30?'00':'30'}`;
+    const si = slotIdx(nowStr);
+    startSel.value = si>=0 ? nowStr : SLOTS[0];
+    endSel.value   = si>=0 && si<SLOTS.length-1 ? SLOTS[si+1] : `${pad(END)}:00`;
 
-    if (range) {
-      document.getElementById('modal-time-info').textContent = `${range.start} ~ ${range.end}`;
-      overlay.dataset.start = range.start;
-      overlay.dataset.end   = range.end;
+    // 시작 바뀌면 종료도 자동 조정
+    startSel.onchange = () => {
+      const si2 = slotIdx(startSel.value);
+      const ei2 = slotIdx(endSel.value);
+      if(ei2 <= si2) endSel.value = si2<SLOTS.length-1 ? SLOTS[si2+1] : `${pad(END)}:00`;
+    };
+  }
+
+  function openModal(start,end){
+    buildPalette();
+    document.getElementById('modal-input').value='';
+    const ov=document.getElementById('modal-overlay');
+    const timeRow = document.getElementById('modal-time-row');
+    const rangeDiv = document.getElementById('modal-range');
+
+    if(start&&end){
+      // 드래그로 선택한 경우 - 셀렉트 숨기고 텍스트 표시
+      rangeDiv.textContent=`${start} ~ ${end}`;
+      rangeDiv.style.display='block';
+      timeRow.style.display='none';
+      ov.dataset.start=start;
+      ov.dataset.end=end;
     } else {
-      document.getElementById('modal-time-info').textContent = '시간을 드래그해서 선택하세요';
-      delete overlay.dataset.start;
-      delete overlay.dataset.end;
+      // + 추가 버튼 - 셀렉트 보이게
+      rangeDiv.textContent='';
+      rangeDiv.style.display='none';
+      timeRow.style.display='flex';
+      buildTimeSels();
+      ov.dataset.start='';
+      ov.dataset.end='';
     }
-    delete overlay.dataset.editIdx;
-
-    overlay.classList.add('open');
-    setTimeout(() => document.getElementById('modal-input').focus(), 50);
+    delete ov.dataset.editIdx;
+    ov.classList.add('open');
+    setTimeout(()=>document.getElementById('modal-input').focus(),50);
   }
 
-  function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+  function openModalManual(){openModal('','');}
+  function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
 
-  function saveEvent() {
-    const overlay = document.getElementById('modal-overlay');
-    const title   = document.getElementById('modal-input').value.trim();
-    const start   = overlay.dataset.start;
-    const end     = overlay.dataset.end;
-
-    if (!start || !end) { showToast('시간을 드래그해서 선택해주세요!'); return; }
-
-    const editIdx = overlay.dataset.editIdx;
-    if (editIdx !== undefined) {
-      events[parseInt(editIdx)] = { title, start, end, color: selectedColor };
-    } else {
-      events.push({ title, start, end, color: selectedColor });
+  function saveEvent(){
+    const ov=document.getElementById('modal-overlay');
+    const title=document.getElementById('modal-input').value.trim();
+    // 셀렉트가 보이면 셀렉트 값 사용
+    const timeRow = document.getElementById('modal-time-row');
+    let start=ov.dataset.start, end=ov.dataset.end;
+    if(timeRow.style.display==='flex'){
+      start = document.getElementById('modal-start-sel').value;
+      end   = document.getElementById('modal-end-sel').value;
     }
-
-    saveEvents();
-    closeModal();
-    showToast(title ? `"${title}" 추가됨!` : '일정 추가됨!');
+    if(!start||!end||start>=end){showToast('시간을 올바르게 선택해주세요!');return;}
+    const editIdx=ov.dataset.editIdx;
+    if(editIdx!==undefined&&editIdx!==''){events[parseInt(editIdx)]={title,start,end,color:selColor};}
+    else{events.push({title,start,end,color:selColor});}
+    localStorage.setItem('tt-v3',JSON.stringify(events));
+    renderEvents();closeModal();
+    showToast(title?`"${title}" 추가됨!`:'일정 추가됨!');
   }
 
-  function editEvent(idx) {
-    const ev = events[idx];
-    selectedColor = ev.color;
-    openModal({ start: ev.start, end: ev.end });
-    document.getElementById('modal-input').value = ev.title || '';
-    document.getElementById('modal-overlay').dataset.editIdx = idx;
+  function editEvent(idx){
+    const ev=events[idx];selColor=ev.color;
+    openModal(ev.start,ev.end);
+    document.getElementById('modal-input').value=ev.title||'';
+    document.getElementById('modal-overlay').dataset.editIdx=idx;
   }
 
-  function deleteEvent(idx) {
-    events.splice(idx, 1);
-    saveEvents();
-    showToast('삭제됐어요!');
+  function deleteEvent(idx){
+    events.splice(idx,1);localStorage.setItem('tt-v3',JSON.stringify(events));
+    renderEvents();showToast('삭제됐어요!');
   }
 
-  function clearAll() {
-    if (!confirm('모든 일정을 삭제할까요?')) return;
-    events = []; saveEvents(); showToast('전체 삭제됐어요!');
+  function clearAll(){
+    if(!confirm('모든 일정을 삭제할까요?'))return;
+    events=[];localStorage.setItem('tt-v3',JSON.stringify(events));
+    renderEvents();showToast('전체 삭제됐어요!');
   }
 
-  function saveEvents() {
-    localStorage.setItem('timetracker-v2', JSON.stringify(events));
-    renderEvents();
-  }
-
-  // ── 유틸 ──────────────────────────────────────────────────
   let toastTimer;
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg; t.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+  function showToast(msg){
+    const t=document.getElementById('toast');
+    t.textContent=msg;t.classList.add('show');
+    clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2000);
   }
 
-  function escHtml(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
+  function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-  document.getElementById('modal-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') saveEvent();
-    if (e.key === 'Escape') closeModal();
+  document.getElementById('modal-input').addEventListener('keydown',e=>{
+    if(e.key==='Enter')saveEvent();if(e.key==='Escape')closeModal();
   });
 
-  // ── 초기화 ──────────────────────────────────────────────
   buildGrid();
-
-  // 현재 시간으로 스크롤
-  setTimeout(() => {
-    const now  = new Date();
-    const mins = (now.getHours() - START_HOUR) * 60 + now.getMinutes();
-    if (mins > 0) {
-      const outer = document.getElementById('timeline-outer');
-      outer.scrollTop = Math.max(0, (mins / 30) * CELL_H - 100);
-    }
-  }, 100);
+  setTimeout(()=>{
+    const now=new Date();
+    const mins=(now.getHours()-START)*60+now.getMinutes();
+    if(mins>0)document.getElementById('timeline-outer').scrollTop=Math.max(0,(mins/60*ROW_H)-100);
+  },100);
 </script>
+
 </body>
 </html>
