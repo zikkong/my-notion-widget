@@ -1,12 +1,13 @@
 {
   "rewrites": [
+    { "source": "/", "destination": "/home.html" },
+    { "source": "/todo", "destination": "/index.html" },
     { "source": "/calendar", "destination": "/calendar.html" },
     { "source": "/timetracker", "destination": "/timetracker.html" },
     { "source": "/date", "destination": "/date-widget.html" },
     { "source": "/memo", "destination": "/memo.html" },
     { "source": "/attendance", "destination": "/attendance.html" },
-    { "source": "/label", "destination": "/label.html" },
     { "source": "/projects", "destination": "/projects.html" },
-    { "source": "/home", "destination": "/home.html" }
+    { "source": "/label", "destination": "/label.html" }
   ]
 }
