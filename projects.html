@@ -298,12 +298,21 @@
         grid[dateStr][ch].push({p, type});
       }
     }
+    // 채널별 업로드 날짜 중복 방지 (채널당 하나만)
+    const uploadAdded=new Set();
     allProjects.forEach(p=>{
       const ch=p.properties['채널']?.select?.name||'(미정)';
       const iljaStr=p.properties['일자']?.date?.start?.split('T')[0]||null;
       const uploadStr=p.properties['업로드']?.date?.start?.split('T')[0]||null;
       addToGrid(iljaStr, ch, p, 'ilja');
-      addToGrid(uploadStr, ch, p, 'upload');
+      // 채널+업로드날짜 조합으로 중복 체크
+      if(uploadStr){
+        const key=`${ch}_${uploadStr}`;
+        if(!uploadAdded.has(key)){
+          uploadAdded.add(key);
+          addToGrid(uploadStr, ch, p, 'upload');
+        }
+      }
     });
 
     const table=document.createElement('table');
@@ -355,7 +364,10 @@
           block.style.color=TXT[color]||TXT.default;
 
           if(isUploadDay){
-            // 업로드 날짜 → "업로드" 텍스트만
+            // 업로드 날짜 → 빨간색으로 강조
+            block.style.background='#fdeee8';
+            block.style.color='#c03020';
+            block.style.outline='1.5px solid #e07050';
             block.innerHTML=`<div class="block-title">📤 업로드</div>`;
           } else {
             // 일자 → 제목 + 하단에 업로드 날짜 작게
