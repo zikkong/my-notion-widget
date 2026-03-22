@@ -124,7 +124,7 @@
     .proj-block.done { opacity:0.4; text-decoration:line-through; }
     .block-row { display:flex; align-items:center; gap:4px; }
     .block-title { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; }
-    .block-upload { font-size:8px; opacity:0.7; margin-top:1px; }
+    .block-upload { font-size:8px; opacity:0.7; margin-top:3px; padding-left:18px; }
     .block-check-btn {
       width:14px; height:14px; flex-shrink:0;
       border-radius:50%; border:1.5px solid currentColor;
@@ -284,12 +284,19 @@
     const todayStr=`${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
     document.getElementById('month-label').textContent=`${curYear}년 ${curMonth+1}월`;
 
-    const daysInMonth=new Date(curYear,curMonth+1,0).getDate();
+    // 전달 ~ 이번달 ~ 다음달 3개월 연속으로 표시
     const dates=[];
-    for(let d=1;d<=daysInMonth;d++){
-      const dateStr=`${curYear}-${pad(curMonth+1)}-${pad(d)}`;
-      const dow=new Date(curYear,curMonth,d).getDay();
-      dates.push({d,dateStr,dow});
+    for(let mOffset=-1; mOffset<=1; mOffset++){
+      let y=curYear, m=curMonth+mOffset;
+      if(m<0){m=11;y--;}
+      if(m>11){m=0;y++;}
+      const daysInMonth=new Date(y,m+1,0).getDate();
+      for(let d=1;d<=daysInMonth;d++){
+        const dateStr=`${y}-${pad(m+1)}-${pad(d)}`;
+        const dow=new Date(y,m,d).getDay();
+        const isFirstOfMonth=d===1;
+        dates.push({d,dateStr,dow,isFirstOfMonth,month:m+1,year:y});
+      }
     }
 
     // 채널 목록
@@ -305,12 +312,25 @@
       return;
     }
 
+    // 표시 범위: 전달~다음달
+    function inRange(dateStr){
+      if(!dateStr) return false;
+      const [y,m]=dateStr.split('-').map(Number);
+      let prevM=curMonth, prevY=curYear;
+      prevM--; if(prevM<0){prevM=11;prevY--;}
+      let nextM=curMonth, nextY=curYear;
+      nextM++; if(nextM>11){nextM=0;nextY++;}
+      if(y===prevY && m===prevM+1) return true;
+      if(y===curYear && m===curMonth+1) return true;
+      if(y===nextY && m===nextM+1) return true;
+      return false;
+    }
+
     // 날짜-채널별 그룹핑 (일자 + 업로드 날짜 둘 다 반영)
     const grid={};
     function addToGrid(dateStr, ch, p, type){
       if(!dateStr) return;
-      const [y,m]=dateStr.split('-').map(Number);
-      if(y!==curYear || m!==curMonth+1) return;
+      if(!inRange(dateStr)) return;
       if(!grid[dateStr]) grid[dateStr]={};
       if(!grid[dateStr][ch]) grid[dateStr][ch]=[];
       // 중복 방지 (같은 날짜에 이미 있으면 스킵)
@@ -345,9 +365,10 @@
     const thEmpty=document.createElement('th');
     thEmpty.textContent='채널';
     headerRow.appendChild(thEmpty);
-    dates.forEach(({d,dateStr,dow})=>{
+    dates.forEach(({d,dateStr,dow,isFirstOfMonth,month})=>{
       const th=document.createElement('th');
-      th.textContent=`${d}\n${DAYS[dow]}`;
+      th.textContent=isFirstOfMonth?`${month}월\n${d}\n${DAYS[dow]}`:`${d}\n${DAYS[dow]}`;
+      if(isFirstOfMonth) th.style.borderLeft='2px solid #e8ddd5';
       if(dateStr===todayStr) th.classList.add('today-col');
       if(dow===0||dow===6) th.classList.add('weekend');
       headerRow.appendChild(th);
