@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Work Dashboard</title>
+  <style>
+    @font-face { font-family:'SBAggroOTF'; src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroL.woff') format('woff'); font-weight:300; }
+    @font-face { font-family:'SBAggroOTF'; src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroM.woff') format('woff'); font-weight:400; }
+    @font-face { font-family:'SBAggroOTF'; src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroB.woff') format('woff'); font-weight:700; }
+
+    :root {
+      --border: #615847;
+      --txt:    #615847;
+      --mute:   #a08c78;
+      --bg:     #faf7f5;
+      --font:   'SBAggroOTF', sans-serif;
+      --radius: 16px;
+    }
+
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    ::-webkit-scrollbar { width:6px; }
+    ::-webkit-scrollbar-thumb { background:#e8ddd5; border-radius:99px; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--txt);
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    /* 상단 헤더 */
+    .top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .site-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--txt);
+      letter-spacing: -1px;
+    }
+
+    .site-sub {
+      font-size: 12px;
+      font-weight: 300;
+      color: var(--mute);
+      margin-top: 4px;
+    }
+
+    .header-time {
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--mute);
+      text-align: right;
+    }
+
+    /* 3열 그리드 */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    /* 위젯 카드 */
+    .widget-card {
+      background: #fff;
+      border: 1.5px solid #e8ddd5;
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .widget-card.span2 { grid-column: span 2; }
+    .widget-card.span3 { grid-column: span 3; }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px 0;
+      flex-shrink: 0;
+    }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--mute);
+      letter-spacing: 0.05em;
+    }
+
+    .card-link {
+      font-size: 10px;
+      font-weight: 300;
+      color: var(--mute);
+      text-decoration: none;
+      padding: 2px 8px;
+      border-radius: 20px;
+      border: 1px solid #e8ddd5;
+      transition: all .15s;
+    }
+    .card-link:hover { background: var(--border); color:#fff; border-color:var(--border); }
+
+    iframe {
+      width: 100%;
+      border: none;
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-header">
+    <div>
+      <div class="site-title">🗂 Work Dashboard</div>
+      <div class="site-sub" id="today-sub">—</div>
+    </div>
+    <div class="header-time" id="header-time">—</div>
+  </div>
+
+  <div class="grid">
+
+    <!-- 날짜 -->
+    <div class="widget-card">
+      <div class="card-header">
+        <span class="card-title">DATE</span>
+        <a class="card-link" href="/date" target="_blank">↗</a>
+      </div>
+      <iframe src="/date" height="130"></iframe>
+    </div>
+
+    <!-- 근태 관리 -->
+    <div class="widget-card">
+      <div class="card-header">
+        <span class="card-title">근태 관리</span>
+        <a class="card-link" href="/attendance" target="_blank">↗</a>
+      </div>
+      <iframe src="/attendance" height="130"></iframe>
+    </div>
+
+    <!-- 메모 -->
+    <div class="widget-card">
+      <div class="card-header">
+        <span class="card-title">MEMO</span>
+        <a class="card-link" href="/memo" target="_blank">↗</a>
+      </div>
+      <iframe src="/memo" height="130"></iframe>
+    </div>
+
+    <!-- 투두 -->
+    <div class="widget-card span2">
+      <div class="card-header">
+        <span class="card-title">TO-DO</span>
+        <a class="card-link" href="/" target="_blank">↗</a>
+      </div>
+      <iframe src="/" height="340"></iframe>
+    </div>
+
+    <!-- 타임트래커 -->
+    <div class="widget-card">
+      <div class="card-header">
+        <span class="card-title">TIME TRACKER</span>
+        <a class="card-link" href="/timetracker" target="_blank">↗</a>
+      </div>
+      <iframe src="/timetracker" height="340"></iframe>
+    </div>
+
+    <!-- 캘린더 -->
+    <div class="widget-card span2">
+      <div class="card-header">
+        <span class="card-title">CALENDAR</span>
+        <a class="card-link" href="/calendar" target="_blank">↗</a>
+      </div>
+      <iframe src="/calendar" height="340"></iframe>
+    </div>
+
+    <!-- 프로젝트 트래커 -->
+    <div class="widget-card span3">
+      <div class="card-header">
+        <span class="card-title">PROJECT TRACKER</span>
+        <a class="card-link" href="/projects" target="_blank">↗</a>
+      </div>
+      <iframe src="/projects" height="300"></iframe>
+    </div>
+
+  </div>
+
+  <script>
+    const DAYS = ['일','월','화','수','목','금','토'];
+    function update(){
+      const now = new Date();
+      const y=now.getFullYear(), m=now.getMonth()+1, d=now.getDate();
+      const dow = DAYS[now.getDay()];
+      const h=String(now.getHours()).padStart(2,'0');
+      const min=String(now.getMinutes()).padStart(2,'0');
+      document.getElementById('today-sub').textContent =
+        `${y}년 ${m}월 ${d}일 (${dow})`;
+      document.getElementById('header-time').textContent =
+        `현재 시각 ${h}:${min}`;
+    }
+    update();
+    setInterval(update, 60000);
+  </script>
+
+</body>
+</html>
