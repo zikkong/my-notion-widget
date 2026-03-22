@@ -236,7 +236,7 @@
     // 채널별 그룹핑
     const channelMap = {};
     projects.forEach(p => {
-      const ch = p.properties['채널명']?.select?.name || '(채널 미정)';
+      const ch = p.properties['채널']?.select?.name || '(채널 미정)';
       if(!channelMap[ch]) channelMap[ch] = [];
       channelMap[ch].push(p);
     });
