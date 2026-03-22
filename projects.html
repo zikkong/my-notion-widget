@@ -272,14 +272,6 @@
       dates.push({d,dateStr,dow});
     }
 
-    // 일자 기준으로 이번 달 프로젝트 필터
-    const monthProjects=allProjects.filter(p=>{
-      const dateStr=p.properties['일자']?.date?.start?.split('T')[0]||null;
-      if(!dateStr) return false;
-      const [y,m]=dateStr.split('-').map(Number);
-      return y===curYear && m===curMonth+1;
-    });
-
     // 채널 목록
     const channelSet=new Set();
     allProjects.forEach(p=>{
@@ -293,14 +285,25 @@
       return;
     }
 
-    // 날짜-채널별 그룹핑
+    // 날짜-채널별 그룹핑 (일자 + 업로드 날짜 둘 다 반영)
     const grid={};
-    monthProjects.forEach(p=>{
-      const dateStr=p.properties['일자']?.date?.start?.split('T')[0];
-      const ch=p.properties['채널']?.select?.name||'(미정)';
+    function addToGrid(dateStr, ch, p, type){
+      if(!dateStr) return;
+      const [y,m]=dateStr.split('-').map(Number);
+      if(y!==curYear || m!==curMonth+1) return;
       if(!grid[dateStr]) grid[dateStr]={};
       if(!grid[dateStr][ch]) grid[dateStr][ch]=[];
-      grid[dateStr][ch].push(p);
+      // 중복 방지 (같은 날짜에 이미 있으면 스킵)
+      if(!grid[dateStr][ch].find(item=>item.p.id===p.id && item.type===type)){
+        grid[dateStr][ch].push({p, type});
+      }
+    }
+    allProjects.forEach(p=>{
+      const ch=p.properties['채널']?.select?.name||'(미정)';
+      const iljaStr=p.properties['일자']?.date?.start?.split('T')[0]||null;
+      const uploadStr=p.properties['업로드']?.date?.start?.split('T')[0]||null;
+      addToGrid(iljaStr, ch, p, 'ilja');
+      addToGrid(uploadStr, ch, p, 'upload');
     });
 
     const table=document.createElement('table');
@@ -337,23 +340,22 @@
         if(dateStr===todayStr) td.classList.add('today-col');
 
         const items=grid[dateStr]?.[channel]||[];
-        items.forEach(p=>{
+        items.forEach(({p, type})=>{
           const props=p.properties;
           const title=props['진행 중']?.title?.[0]?.plain_text||'(제목 없음)';
           const stage=props['단계']?.select;
-          const upload=props['업로드']?.date?.start?.split('T')[0]||null;
           const done=props['완']?.checkbox||false;
           const color=stage?.color||'default';
+          const isUploadDay = type==='upload';
 
           const block=document.createElement('div');
           block.className='proj-block'+(done?' done':'');
           block.style.background=BG[color]||BG.default;
           block.style.color=TXT[color]||TXT.default;
+          if(isUploadDay) block.style.outline=`1.5px solid ${TXT[color]||TXT.default}`;
 
-          const uploadLabel=upload?`업로드 ${upload.slice(5).replace('-','/')}`:'' ;
           block.innerHTML=`
-            <div class="block-title">${esc(title)}</div>
-            ${upload?`<div class="block-upload">📅 ${uploadLabel}</div>`:''}`;
+            <div class="block-title">${isUploadDay?'📤 ':''}${esc(title)}</div>`;
 
           block.addEventListener('click', e=>{
             e.stopPropagation();
