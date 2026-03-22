@@ -251,7 +251,7 @@
       }
       const r2=await fetch('/api/notion?action=projects',{
         method:'POST', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({page_size:100})
+        body:JSON.stringify({page_size:100, sorts:[{property:'업로드', direction:'ascending'}]})
       });
       const d2=await r2.json();
       allProjects=d2.results||[];
@@ -265,7 +265,7 @@
     const legend=document.getElementById('legend');
     legend.innerHTML='';
     // 원하는 순서로 정렬
-    const ORDER=['계약서','가이드','기획안','히든링크','업로드'];
+    const ORDER=['계약서','가이드','기획안','콘텐츠 검수','히든링크','업로드'];
     const sorted=[
       ...ORDER.map(name=>stageOptions.find(o=>o.name.includes(name))).filter(Boolean),
       ...stageOptions.filter(o=>!ORDER.some(name=>o.name.includes(name)))
