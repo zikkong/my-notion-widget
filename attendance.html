@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>근태 관리</title>
+  <style>
+    @font-face { font-family:'SBAggroOTF'; src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroL.woff') format('woff'); font-weight:300; }
+    @font-face { font-family:'SBAggroOTF'; src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroM.woff') format('woff'); font-weight:400; }
+    @font-face { font-family:'SBAggroOTF'; src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroB.woff') format('woff'); font-weight:700; }
+
+    :root {
+      --border: #615847; --txt: #615847; --mute: #a08c78;
+      --pink: #FDD5E7; --green: #D3EBAD; --yellow: #FFF4B1;
+      --surface: #FEF8FA; --radius: 18px; --font: 'SBAggroOTF', sans-serif;
+    }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    ::-webkit-scrollbar { display:none; }
+    * { -ms-overflow-style:none; scrollbar-width:none; }
+
+    body {
+      font-family: var(--font);
+      background: #fff;
+      color: var(--txt);
+      min-height: 100vh;
+      position: relative;
+    }
+    body::before {
+      content:''; position:fixed; top:0;left:0;right:0;bottom:0;
+      border:2px solid var(--border); border-radius:var(--radius);
+      pointer-events:none; z-index:9999;
+    }
+
+    /* 헤더 */
+    .header {
+      position: sticky; top:0; z-index:50;
+      background:#fff;
+      padding: 18px 20px 12px;
+      border-bottom: 2px solid var(--border);
+      display: flex; justify-content:space-between; align-items:center;
+    }
+    .header-title { font-size:20px; font-weight:700; letter-spacing:-0.5px; }
+    .header-sub { font-size:11px; font-weight:300; color:var(--mute); margin-top:3px; }
+
+    .reset-btn {
+      background: #f0e8e0; border:none; border-radius:8px;
+      padding:5px 12px; font-size:11px; font-family:var(--font);
+      color:var(--txt); cursor:pointer;
+    }
+
+    /* 금요일 조기퇴근 배너 */
+    .friday-banner {
+      margin: 12px 16px 0;
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex; align-items:center; justify-content:space-between;
+      font-size: 13px; font-weight:400;
+    }
+    .friday-banner.possible { background: var(--green); }
+    .friday-banner.impossible { background: var(--surface); border:1.5px solid #e8ddd5; }
+    .friday-banner .badge {
+      font-size: 11px; font-weight:300;
+      padding: 3px 10px; border-radius:20px;
+      background: rgba(255,255,255,0.6);
+    }
+
+    /* 주간 진행률 */
+    .week-progress {
+      margin: 10px 16px;
+      background: var(--surface);
+      border: 1.5px solid #e8ddd5;
+      border-radius: 12px;
+      padding: 12px 16px;
+    }
+    .progress-header {
+      display:flex; justify-content:space-between;
+      font-size:11px; font-weight:300; color:var(--mute);
+      margin-bottom:8px;
+    }
+    .progress-header span:last-child { font-weight:400; color:var(--txt); }
+    .prog-bar-bg {
+      height: 10px; background:#fff;
+      border:1.5px solid #e8ddd5; border-radius:99px; overflow:hidden;
+    }
+    .prog-bar-fill {
+      height:100%; border-radius:99px;
+      transition: width .6s cubic-bezier(0.22,1,0.36,1);
+    }
+    .prog-bar-fill.done { background: var(--green); }
+    .prog-bar-fill.going { background: var(--pink); }
+
+    /* 요일 카드 목록 */
+    .day-list { padding: 10px 16px 24px; display:flex; flex-direction:column; gap:8px; }
+
+    .day-card {
+      border: 1.5px solid #e8ddd5;
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: #fff;
+      transition: background .2s;
+    }
+    .day-card.today { border-color: var(--border); background: var(--surface); }
+    .day-card.has-overtime { border-color: #b8d990; }
+
+    .day-top {
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom: 8px;
+    }
+    .day-name { font-size:14px; font-weight:700; }
+    .day-name.fri { color: #7090c0; }
+    .day-overtime {
+      font-size:11px; font-weight:300; color:var(--mute);
+      background: var(--green); padding:2px 8px; border-radius:20px;
+      color: #4a7a20;
+    }
+    .day-overtime.zero { background: #f0e8e0; color:var(--mute); }
+
+    .time-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap:8px;
+    }
+
+    .time-box {
+      background: #f8f4f0;
+      border-radius: 8px;
+      padding: 8px 10px;
+      display:flex; flex-direction:column; gap:3px;
+    }
+    .time-box-label { font-size:9px; font-weight:300; color:var(--mute); }
+    .time-box-value { font-size:14px; font-weight:400; color:var(--txt); }
+    .time-box-value.empty { color:#ccc; font-size:12px; }
+
+    .time-btn {
+      width:100%; border:none; border-radius:8px;
+      padding:7px; font-size:12px; font-family:var(--font);
+      cursor:pointer; font-weight:400; transition:opacity .15s;
+    }
+    .time-btn:active { opacity:0.8; }
+    .btn-in  { background: var(--border); color:#fff; }
+    .btn-out { background: var(--pink); color: var(--txt); }
+    .btn-clear { background:#f0e8e0; color:var(--mute); font-size:10px; }
+
+    /* 보존근무 안내 */
+    .preserve-notice {
+      font-size:10px; font-weight:300; color:#c07050;
+      margin-top:6px; padding:4px 8px;
+      background:#fff3ee; border-radius:6px;
+    }
+
+    /* 퇴근 가능 시간 표시 */
+    .leave-time {
+      font-size:10px; font-weight:300; color:var(--mute);
+      margin-top:6px;
+    }
+    .leave-time span { font-weight:400; color:var(--txt); }
+
+    /* 히스토리 모달 */
+    .modal-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,0.2);
+      z-index:200; display:none; align-items:center; justify-content:center;
+    }
+    .modal-overlay.open { display:flex; }
+    .modal {
+      background:#fff; border:2px solid var(--border);
+      border-radius:var(--radius); padding:20px; width:300px;
+      box-shadow:0 8px 24px rgba(0,0,0,0.12);
+    }
+    .history-week {
+      border:1.5px solid #e8ddd5; border-radius:10px;
+      padding:10px 12px; margin-bottom:8px;
+    }
+    .history-week-title {
+      font-size:11px; font-weight:400; color:var(--txt);
+      margin-bottom:8px; display:flex; justify-content:space-between;
+    }
+    .history-row {
+      display:flex; justify-content:space-between;
+      font-size:11px; font-weight:300; color:var(--mute);
+      padding:3px 0; border-bottom:1px solid #f0e8e0;
+    }
+    .history-row:last-child { border-bottom:none; }
+    .history-ot { color:#4a7a20; font-weight:400; }
+
+    /* 수기입력 */
+    .manual-row { display:flex; }
+    .time-input {
+      flex:1; border:1.5px solid #e8ddd5; border-radius:8px;
+      padding:6px 8px; font-size:12px; font-family:var(--font);
+      color:var(--txt); background:#fff; outline:none;
+    }
+    .time-input:focus { border-color:var(--border); }
+    .manual-btn {
+      flex-shrink:0; background:#f0e8e0; color:var(--txt);
+      border:none; border-radius:8px; padding:6px 12px;
+      font-size:11px; font-family:var(--font); cursor:pointer;
+    }
+    .manual-btn:active { opacity:0.8; }
+
+    /* 토스트 */
+    #toast {
+      position:fixed; bottom:20px; left:50%;
+      transform:translateX(-50%) translateY(80px);
+      background:var(--border); color:#fff;
+      padding:8px 16px; border-radius:20px;
+      font-size:12px; font-weight:300;
+      transition:transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+      pointer-events:none; z-index:9998;
+    }
+    #toast.show { transform:translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">🕐 근태 관리</div>
+    <div class="header-sub" id="week-label">—</div>
+  </div>
+  <div style="display:flex;gap:6px;">
+    <button class="reset-btn" onclick="showHistory()">📋 기록</button>
+    <button class="reset-btn" onclick="resetWeek()">초기화</button>
+  </div>
+</div>
+
+<div class="friday-banner impossible" id="friday-banner">
+  <span id="friday-text">금요일 16시 퇴근까지 —</span>
+  <span class="badge" id="friday-badge">—</span>
+</div>
+
+<div class="week-progress">
+  <div class="progress-header">
+    <span>월~목 연장근무 합계</span>
+    <span id="total-overtime-label">0분 / 120분</span>
+  </div>
+  <div class="prog-bar-bg">
+    <div class="prog-bar-fill going" id="prog-fill" style="width:0%"></div>
+  </div>
+</div>
+
+<div class="day-list" id="day-list"></div>
+
+<!-- 히스토리 모달 -->
+<div class="modal-overlay" id="history-modal">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div style="font-size:14px;font-weight:700;color:var(--txt);">📋 주간 기록</div>
+      <button onclick="closeHistory()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--mute);">✕</button>
+    </div>
+    <div id="history-content" style="max-height:60vh;overflow-y:auto;"></div>
+    <div style="margin-top:12px;text-align:right;">
+      <button onclick="clearHistory()" style="background:#f0e8e0;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-family:var(--font);color:var(--mute);cursor:pointer;">전체 삭제</button>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+  const DAYS = ['월','화','수','목','금'];
+  const WORK_START = 9*60;      // 9:00
+  const WORK_END   = 18*60;     // 18:00
+  const BREAK_START= 12*60+30;  // 12:30
+  const BREAK_END  = 13*60+30;  // 13:30
+  const BREAK_MINS = 60;
+  const PRESERVE_END = 9*60+30; // 9:30 (보존근무 기준)
+  const FRIDAY_THRESHOLD = 120; // 2시간 = 120분
+  const FRIDAY_LEAVE = 16*60;   // 16:00
+
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function minToTime(m){ return pad(Math.floor(m/60))+':'+pad(m%60); }
+  function timeToMin(t){ const [h,m]=t.split(':').map(Number); return h*60+m; }
+
+  // 이번 주 월요일 날짜 키
+  function getMonWeekKey(){
+    const now=new Date();
+    const day=now.getDay(); // 0=일
+    const diff=day===0?-6:1-day;
+    const mon=new Date(now); mon.setDate(now.getDate()+diff);
+    return `${mon.getFullYear()}-${pad(mon.getMonth()+1)}-${pad(mon.getDate())}`;
+  }
+
+  function getWeekLabel(){
+    const key=getMonWeekKey();
+    const mon=new Date(key);
+    const fri=new Date(key); fri.setDate(fri.getDate()+4);
+    return `${mon.getMonth()+1}/${mon.getDate()} ~ ${fri.getMonth()+1}/${fri.getDate()} 주`;
+  }
+
+  // 데이터 로드/저장
+  const STORAGE_KEY = 'attendance-v1';
+
+  function loadData(){
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return null;
+    return JSON.parse(raw);
+  }
+
+  function saveData(data){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  function initData(){
+    const weekKey = getMonWeekKey();
+    const existing = loadData();
+    // 주가 바뀌면 이전 기록 보관 후 초기화
+    if(!existing || existing.weekKey !== weekKey){
+      // 이전 주 기록 보관
+      if(existing && existing.weekKey){
+        const history = JSON.parse(localStorage.getItem('attendance-history') || '[]');
+        history.unshift(existing); // 최신순
+        localStorage.setItem('attendance-history', JSON.stringify(history));
+      }
+      const data = { weekKey, days:{} };
+      DAYS.forEach(d=>{ data.days[d]={ in:null, out:null }; });
+      saveData(data);
+      return data;
+    }
+    return existing;
+  }
+
+  // 연장근무 계산 (분)
+  // 보존근무: 9:00~9:30 사이 출근 → 늦은 만큼 퇴근 기준 늦춰짐 (연장 미포함)
+  // 연장근무: 보존근무 반영 퇴근 기준 이후 근무시간
+  function calcOvertime(inMin, outMin, dayName){
+    if(inMin===null||outMin===null) return { overtime:0, leaveBase:null, preserveMins:0 };
+
+    // 보존근무: 9:00~9:30 출근 시 늦은 만큼
+    let preserveMins = 0;
+    if(inMin > WORK_START && inMin <= PRESERVE_END){
+      preserveMins = inMin - WORK_START;
+    }
+
+    // 실제 퇴근 기준 = 18:00 + 보존근무분
+    const leaveBase = WORK_END + preserveMins;
+
+    // 연장근무 = 퇴근 기준 이후 근무시간 (금요일 제외)
+    let overtime = 0;
+    if(dayName !== '금' && outMin > leaveBase){
+      overtime = outMin - leaveBase;
+    }
+
+    return { overtime, leaveBase, preserveMins };
+  }
+
+  // 전체 렌더
+  function render(){
+    const data = initData();
+    document.getElementById('week-label').textContent = getWeekLabel();
+
+    // 월~목 연장합계
+    let totalOvertime = 0;
+    ['월','화','수','목'].forEach(d=>{
+      const {in:i, out:o} = data.days[d];
+      if(i&&o){
+        const {overtime} = calcOvertime(timeToMin(i), timeToMin(o), d);
+        totalOvertime += overtime;
+      }
+    });
+
+    // 금요일 배너
+    const canFriday = totalOvertime >= FRIDAY_THRESHOLD;
+    const banner = document.getElementById('friday-banner');
+    const fridayText = document.getElementById('friday-text');
+    const fridayBadge = document.getElementById('friday-badge');
+    banner.className = 'friday-banner ' + (canFriday?'possible':'impossible');
+    const remain = Math.max(0, FRIDAY_THRESHOLD - totalOvertime);
+    if(canFriday){
+      fridayText.textContent = '🎉 금요일 16시 퇴근 가능!';
+      fridayBadge.textContent = `+${Math.floor(totalOvertime/60)}h${totalOvertime%60}m 달성`;
+    } else {
+      const rh = Math.floor(remain/60), rm = remain%60;
+      fridayText.textContent = `금요일 16시 퇴근까지`;
+      fridayBadge.textContent = `${rh>0?rh+'h':''}${rm}m 남음`;
+    }
+
+    // 진행률 바
+    const pct = Math.min(100, Math.round(totalOvertime/FRIDAY_THRESHOLD*100));
+    const fill = document.getElementById('prog-fill');
+    fill.style.width = pct+'%';
+    fill.className = 'prog-bar-fill ' + (canFriday?'done':'going');
+    const th = Math.floor(totalOvertime/60), tm = totalOvertime%60;
+    document.getElementById('total-overtime-label').textContent =
+      `${th>0?th+'h':''}${tm}m / 2h 0m`;
+
+    // 요일 카드
+    const list = document.getElementById('day-list');
+    list.innerHTML = '';
+
+    const now = new Date();
+    const todayDow = now.getDay(); // 1=월 5=금
+    const todayName = ['일','월','화','수','목','금','토'][todayDow];
+
+    DAYS.forEach(dayName => {
+      const rec = data.days[dayName];
+      const inMin  = rec.in  ? timeToMin(rec.in)  : null;
+      const outMin = rec.out ? timeToMin(rec.out) : null;
+      const {overtime, leaveBase, preserveMins} = calcOvertime(inMin, outMin, dayName);
+      const isToday = dayName === todayName;
+      const isFri   = dayName === '금';
+
+      const card = document.createElement('div');
+      card.className = 'day-card' + (isToday?' today':'') + (overtime>0?' has-overtime':'');
+
+      const otLabel = isFri
+        ? ''
+        : overtime>0
+          ? `+${Math.floor(overtime/60)?Math.floor(overtime/60)+'h':''}${overtime%60}m`
+          : '연장 없음';
+
+      card.innerHTML = `
+        <div class="day-top">
+          <div class="day-name ${isFri?'fri':''}">${dayName}요일${isToday?' 🔸':''}</div>
+          ${!isFri ? `<div class="day-overtime ${overtime===0?'zero':''}">${otLabel}</div>` : ''}
+        </div>
+        <div class="time-row">
+          <div class="time-box">
+            <div class="time-box-label">출근</div>
+            <div class="time-box-value ${!rec.in?'empty':''}">${rec.in||'--:--'}</div>
+          </div>
+          <div class="time-box">
+            <div class="time-box-label">퇴근</div>
+            <div class="time-box-value ${!rec.out?'empty':''}">${rec.out||'--:--'}</div>
+          </div>
+        </div>
+        ${preserveMins>0 ? `<div class="preserve-notice">⚠️ 보존근무 ${preserveMins}분 → ${minToTime(leaveBase)} 이후 퇴근 필요</div>` : ''}
+        ${leaveBase!==null ? `<div class="leave-time">퇴근 가능: <span>${minToTime(leaveBase)}</span>${isFri&&canFriday?' / <span style="color:#4a7a20">16:00 조기퇴근 가능 🎉</span>':''}</div>` : ''}
+        <div class="time-row" style="margin-top:8px">
+          ${!rec.in
+            ? `<button class="time-btn btn-in" onclick="recordIn('${dayName}')">출근 기록</button>`
+            : `<button class="time-btn btn-clear" onclick="clearIn('${dayName}')">출근 취소</button>`
+          }
+          ${rec.in && !rec.out
+            ? `<button class="time-btn btn-out" onclick="recordOut('${dayName}')">퇴근 기록</button>`
+            : rec.out
+              ? `<button class="time-btn btn-clear" onclick="clearOut('${dayName}')">퇴근 취소</button>`
+              : `<button class="time-btn btn-out" style="opacity:0.3" disabled>퇴근 기록</button>`
+          }
+        </div>
+        <div class="time-row manual-row" style="margin-top:6px;gap:6px;align-items:center">
+          <input type="time" class="time-input" id="in-${dayName}" value="${rec.in||''}" placeholder="--:--" />
+          <input type="time" class="time-input" id="out-${dayName}" value="${rec.out||''}" placeholder="--:--" />
+          <button class="time-btn manual-btn" onclick="saveManual('${dayName}')">저장</button>
+        </div>`;
+
+      list.appendChild(card);
+    });
+  }
+
+  function nowTime(){
+    const n=new Date();
+    return pad(n.getHours())+':'+pad(n.getMinutes());
+  }
+
+  function recordIn(day){
+    const data=loadData();
+    if(data.days[day].in){ showToast('이미 출근 기록이 있어요!'); return; }
+    data.days[day].in=nowTime();
+    saveData(data); render();
+    showToast(`${day}요일 출근 기록: ${data.days[day].in}`);
+  }
+
+  function recordOut(day){
+    const data=loadData();
+    if(!data.days[day].in){ showToast('출근 기록이 없어요!'); return; }
+    if(data.days[day].out){ showToast('이미 퇴근 기록이 있어요!'); return; }
+    data.days[day].out=nowTime();
+    saveData(data); render();
+    showToast(`${day}요일 퇴근 기록: ${data.days[day].out}`);
+  }
+
+  function clearIn(day){
+    const data=loadData();
+    data.days[day].in=null; data.days[day].out=null;
+    saveData(data); render();
+    showToast(`${day}요일 출근 기록 삭제`);
+  }
+
+  function clearOut(day){
+    const data=loadData();
+    data.days[day].out=null;
+    saveData(data); render();
+    showToast(`${day}요일 퇴근 기록 삭제`);
+  }
+
+  function showHistory(){
+    const history = JSON.parse(localStorage.getItem('attendance-history') || '[]');
+    const content = document.getElementById('history-content');
+    if(history.length === 0){
+      content.innerHTML = '<div style="text-align:center;padding:20px;font-size:13px;font-weight:300;color:var(--mute);">저장된 기록이 없어요 🌸</div>';
+    } else {
+      content.innerHTML = history.map(week => {
+        const key = week.weekKey;
+        const mon = new Date(key);
+        const fri = new Date(key); fri.setDate(fri.getDate()+4);
+        const weekLabel = `${mon.getMonth()+1}/${mon.getDate()} ~ ${fri.getMonth()+1}/${fri.getDate()}`;
+        let totalOt = 0;
+        const rows = DAYS.map(d => {
+          const rec = week.days[d];
+          if(!rec||!rec.in||!rec.out) return `<div class="history-row"><span>${d}요일</span><span>—</span></div>`;
+          const {overtime} = calcOvertime(timeToMin(rec.in), timeToMin(rec.out), d);
+          if(d !== '금') totalOt += overtime;
+          const otStr = d !== '금' && overtime > 0
+            ? `+${Math.floor(overtime/60)?Math.floor(overtime/60)+'h':''}${overtime%60}m`
+            : '';
+          return `<div class="history-row">
+            <span>${d}요일 ${rec.in}~${rec.out}</span>
+            <span class="history-ot">${otStr}</span>
+          </div>`;
+        }).join('');
+        const canFri = totalOt >= FRIDAY_THRESHOLD;
+        return `<div class="history-week">
+          <div class="history-week-title">
+            <span>${weekLabel}</span>
+            <span style="color:${canFri?'#4a7a20':'var(--mute)'}">연장 ${Math.floor(totalOt/60)}h${totalOt%60}m ${canFri?'✅':''}</span>
+          </div>
+          ${rows}
+        </div>`;
+      }).join('');
+    }
+    document.getElementById('history-modal').classList.add('open');
+  }
+
+  function closeHistory(){
+    document.getElementById('history-modal').classList.remove('open');
+  }
+
+  function clearHistory(){
+    if(!confirm('모든 히스토리를 삭제할까요?')) return;
+    localStorage.removeItem('attendance-history');
+    closeHistory();
+    showToast('히스토리 삭제됐어요!');
+  }
+
+  function saveManual(day){
+    const inVal  = document.getElementById('in-'+day).value;
+    const outVal = document.getElementById('out-'+day).value;
+    if(!inVal){ showToast('출근 시간을 입력해주세요!'); return; }
+    const data = loadData();
+    data.days[day].in  = inVal  || null;
+    data.days[day].out = outVal || null;
+    saveData(data); render();
+    showToast(`${day}요일 시간 저장됨!`);
+  }
+
+  function resetWeek(){
+    if(!confirm('이번 주 기록을 초기화할까요?\n(기록은 히스토리에 저장돼요)')) return;
+    const existing = loadData();
+    if(existing){
+      const history = JSON.parse(localStorage.getItem('attendance-history') || '[]');
+      history.unshift(existing);
+      localStorage.setItem('attendance-history', JSON.stringify(history));
+    }
+    localStorage.removeItem(STORAGE_KEY);
+    render();
+    showToast('초기화됐어요! 히스토리에 저장됐어요 🙂');
+  }
+
+  let toastTimer;
+  function showToast(msg){
+    const t=document.getElementById('toast');
+    t.textContent=msg; t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(()=>t.classList.remove('show'),2500);
+  }
+
+  render();
+</script>
+</body>
+</html>
