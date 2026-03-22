@@ -44,7 +44,7 @@ export default async function handler(req, res) {
     // ── 프로젝트 트래커 목록 가져오기 ──
     if (action === 'projects') {
       const body = req.method === 'POST' ? req.body : {
-        sorts: [{ property: '업로드 예정일', direction: 'ascending' }],
+        sorts: [{ property: '업로드', direction: 'ascending' }],
         page_size: 100
       };
       const response = await fetch(
