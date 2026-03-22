@@ -90,7 +90,7 @@
     .prog-bar-fill.going { background: var(--pink); }
 
     /* 요일 카드 목록 */
-    .day-list { padding: 10px 16px 24px; display:flex; flex-direction:column; gap:8px; }
+    .day-list { padding: 10px 16px 80px; display:flex; flex-direction:column; gap:8px; }
 
     .day-card {
       border: 1.5px solid #e8ddd5;
@@ -181,9 +181,9 @@
     .history-ot { color:#4a7a20; font-weight:400; }
 
     /* 수기입력 */
-    .manual-row { display:flex; }
+    .manual-row { display:flex; flex-wrap:wrap; gap:6px; }
     .time-input {
-      flex:1; border:1.5px solid #e8ddd5; border-radius:8px;
+      flex:1; min-width:80px; border:1.5px solid #e8ddd5; border-radius:8px;
       padding:6px 8px; font-size:12px; font-family:var(--font);
       color:var(--txt); background:#fff; outline:none;
     }
@@ -388,7 +388,13 @@
     const todayDow = now.getDay(); // 1=월 5=금
     const todayName = ['일','월','화','수','목','금','토'][todayDow];
 
-    DAYS.forEach(dayName => {
+    // 오늘 요일부터 시작해서 순서 재배열
+    const todayIdx = DAYS.indexOf(todayName);
+    const orderedDays = todayIdx >= 0
+      ? [...DAYS.slice(todayIdx), ...DAYS.slice(0, todayIdx)]
+      : DAYS;
+
+    orderedDays.forEach(dayName => {
       const rec = data.days[dayName];
       const inMin  = rec.in  ? timeToMin(rec.in)  : null;
       const outMin = rec.out ? timeToMin(rec.out) : null;
