@@ -344,6 +344,7 @@
           const props=p.properties;
           const title=props['진행 중']?.title?.[0]?.plain_text||'(제목 없음)';
           const stage=props['단계']?.select;
+          const upload=props['업로드']?.date?.start?.split('T')[0]||null;
           const done=props['완']?.checkbox||false;
           const color=stage?.color||'default';
           const isUploadDay = type==='upload';
@@ -352,10 +353,17 @@
           block.className='proj-block'+(done?' done':'');
           block.style.background=BG[color]||BG.default;
           block.style.color=TXT[color]||TXT.default;
-          if(isUploadDay) block.style.outline=`1.5px solid ${TXT[color]||TXT.default}`;
 
-          block.innerHTML=`
-            <div class="block-title">${isUploadDay?'📤 ':''}${esc(title)}</div>`;
+          if(isUploadDay){
+            // 업로드 날짜 → "업로드" 텍스트만
+            block.innerHTML=`<div class="block-title">📤 업로드</div>`;
+          } else {
+            // 일자 → 제목 + 하단에 업로드 날짜 작게
+            const uploadLabel = upload ? upload.slice(5).replace('-','/') : null;
+            block.innerHTML=`
+              <div class="block-title">${esc(title)}</div>
+              ${uploadLabel?`<div class="block-upload">📅 ${uploadLabel} 업로드</div>`:''}`;
+          }
 
           block.addEventListener('click', e=>{
             e.stopPropagation();
