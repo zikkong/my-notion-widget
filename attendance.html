@@ -22,10 +22,9 @@
       font-family: var(--font);
       background: #fff;
       color: var(--txt);
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
       position: relative;
     }
     body::before {
@@ -110,7 +109,7 @@
     .prog-bar-fill.going { background: var(--pink); }
 
     /* 요일 카드 목록 */
-    .day-list { flex:1; overflow-y:auto; padding: 10px 16px 80px; display:flex; flex-direction:column; gap:8px; }
+    .day-list { padding: 10px 16px 80px; display:flex; flex-direction:column; gap:8px; }
 
     .day-card {
       border: 1.5px solid #e8ddd5;
