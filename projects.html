@@ -515,7 +515,7 @@
     document.addEventListener('mousemove', e=>{
       if(!isDown) return; e.preventDefault();
       wrap.scrollLeft=scrollLeft-(e.pageX-startX);
-      wrap.scrollTop=scrollTop-(e.pageY-startY);
+      // 세로는 휠스크롤만 사용
     });
 
     const content=document.getElementById('main-content');
