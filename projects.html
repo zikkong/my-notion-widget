@@ -24,7 +24,6 @@
       pointer-events:none; z-index:9999;
     }
 
-    /* 헤더 */
     .header {
       position:sticky; top:0; z-index:50; background:#fff;
       padding:16px 20px 10px;
@@ -32,28 +31,22 @@
       display:flex; justify-content:space-between; align-items:center;
     }
     .header-title { font-size:18px; font-weight:700; letter-spacing:-0.5px; }
-    .header-nav { display:flex; align-items:center; gap:8px; }
-    .month-label { font-size:14px; font-weight:400; min-width:80px; text-align:center; }
-    .nav-btn {
+    .header-right { display:flex; gap:8px; align-items:center; }
+    .header-nav { display:flex; align-items:center; gap:6px; }
+    .month-label { font-size:13px; font-weight:400; min-width:76px; text-align:center; }
+    .nav-btn, .icon-btn {
       background:#FEEAF1; border:1px solid #e8ddd5;
       border-radius:8px; width:26px; height:26px;
       cursor:pointer; display:flex; align-items:center;
       justify-content:center; font-size:13px; color:var(--txt);
-    }
-    .icon-btn {
-      background:#FEEAF1; border:1px solid #e8ddd5;
-      border-radius:8px; width:26px; height:26px;
-      cursor:pointer; display:flex; align-items:center;
-      justify-content:center; font-size:13px; color:var(--txt);
+      flex-shrink:0;
     }
     .icon-btn.spinning { animation:spin .6s linear infinite; }
     @keyframes spin { to{transform:rotate(360deg);} }
 
-    /* 범례 */
     .legend {
       display:flex; gap:8px; flex-wrap:wrap;
-      padding:8px 20px;
-      border-bottom:1px solid #f0e8e0;
+      padding:8px 20px; border-bottom:1px solid #f0e8e0;
     }
     .legend-item {
       display:flex; align-items:center; gap:4px;
@@ -61,46 +54,48 @@
     }
     .legend-dot { width:8px; height:8px; border-radius:50%; }
 
-    /* 그리드 래퍼 */
+    /* 그리드 */
     .grid-wrap {
       overflow-x:auto;
-      padding:10px 20px 24px;
+      overflow-y:auto;
+      padding:10px 0 24px;
+      cursor:grab;
+      user-select:none;
     }
+    .grid-wrap.grabbing { cursor:grabbing; }
 
-    /* 그리드 테이블 */
     .grid-table {
       border-collapse:collapse;
-      min-width:100%;
+      table-layout:fixed;
     }
 
-    /* 날짜 헤더 행 */
     .date-header th {
-      min-width:80px;
+      width:90px; min-width:90px;
       padding:4px 6px;
       font-size:10px; font-weight:300; color:var(--mute);
       text-align:center;
       border-right:1px solid #f0e8e0;
-      white-space:nowrap;
+      border-bottom:1px solid #e8ddd5;
+      white-space:pre;
+      line-height:1.4;
+      position:sticky; top:0; z-index:3; background:#fff;
     }
     .date-header th:first-child {
-      min-width:80px;
-      position:sticky; left:0; z-index:5;
+      width:80px; min-width:80px;
+      position:sticky; left:0; top:0; z-index:6;
       background:#fff;
       border-right:2px solid #e8ddd5;
     }
-    .date-header th.today-col {
-      color:var(--border); font-weight:700;
-      background:#FEF8FA;
-    }
+    .date-header th.today-col { color:var(--border); font-weight:700; background:#FEF8FA; }
     .date-header th.weekend { color:#e07070; }
 
-    /* 채널 행 */
     .channel-row td {
       border-right:1px solid #f0e8e0;
       border-bottom:1px solid #f0e8e0;
       padding:3px;
       vertical-align:top;
-      min-height:40px;
+      min-height:44px;
+      width:90px;
     }
     .channel-row td:first-child {
       position:sticky; left:0; z-index:4;
@@ -109,32 +104,59 @@
       padding:6px 10px;
       font-size:11px; font-weight:700; color:var(--txt);
       white-space:nowrap;
-      min-width:80px;
+      width:80px;
     }
     .channel-row td.today-col { background:#FEF8FA; }
 
-    /* 프로젝트 블록 */
     .proj-block {
       border-radius:6px;
       padding:4px 6px;
       margin-bottom:2px;
       cursor:pointer;
-      transition:opacity .15s;
       font-size:10px; font-weight:300;
       line-height:1.3;
-      white-space:nowrap;
       overflow:hidden;
-      text-overflow:ellipsis;
-      max-width:100%;
     }
-    .proj-block:hover { opacity:0.8; }
-    .proj-block.done { opacity:0.45; text-decoration:line-through; }
+    .proj-block:hover { filter:brightness(0.95); }
+    .proj-block.done { opacity:0.4; text-decoration:line-through; }
+    .block-title { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .block-upload { font-size:8px; opacity:0.7; margin-top:1px; }
 
-    /* 빈 상태 */
-    .empty {
-      text-align:center; padding:40px;
-      font-size:13px; font-weight:300; color:var(--mute);
+    /* 수정 모달 */
+    .modal-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,0.2);
+      z-index:200; display:none; align-items:center; justify-content:center;
     }
+    .modal-overlay.open { display:flex; }
+    .modal {
+      background:#fff; border:2px solid var(--border);
+      border-radius:var(--radius); padding:20px; width:280px;
+      box-shadow:0 8px 24px rgba(0,0,0,0.12);
+    }
+    .modal-title { font-size:13px; font-weight:700; color:var(--txt); margin-bottom:14px; }
+    .modal-label { font-size:10px; font-weight:300; color:var(--mute); margin-bottom:6px; }
+    .stage-options { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
+    .stage-opt {
+      padding:4px 10px; border-radius:20px;
+      font-size:11px; font-weight:300;
+      cursor:pointer; border:1.5px solid transparent;
+      transition:opacity .15s;
+    }
+    .stage-opt.selected { border-color: var(--border); }
+    .done-row {
+      display:flex; align-items:center; gap:8px;
+      margin-bottom:14px; font-size:12px; font-weight:300;
+    }
+    .done-row input { cursor:pointer; width:16px; height:16px; }
+    .modal-btns { display:flex; gap:8px; justify-content:flex-end; }
+    .modal-btns button {
+      border:none; border-radius:8px; padding:7px 14px;
+      font-size:12px; font-family:var(--font); cursor:pointer;
+    }
+    .btn-cancel { background:#f0e8e0; color:var(--txt); }
+    .btn-save   { background:var(--border); color:#fff; font-weight:400; }
+
+    .empty { text-align:center; padding:40px; font-size:13px; font-weight:300; color:var(--mute); }
 
     #toast {
       position:fixed; bottom:20px; left:50%;
@@ -152,7 +174,7 @@
 
 <div class="header">
   <div class="header-title">📋 프로젝트 트래커</div>
-  <div style="display:flex;gap:8px;align-items:center;">
+  <div class="header-right">
     <div class="header-nav">
       <div class="nav-btn" onclick="moveMonth(-1)">‹</div>
       <div class="month-label" id="month-label">—</div>
@@ -164,203 +186,275 @@
 
 <div class="legend" id="legend"></div>
 <div id="main-content"><div class="empty">불러오는 중...</div></div>
+
+<!-- 수정 모달 -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-project-title">—</div>
+    <div class="modal-label">단계</div>
+    <div class="stage-options" id="stage-options"></div>
+    <div class="done-row">
+      <input type="checkbox" id="done-check" />
+      <label for="done-check">완료</label>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">취소</button>
+      <button class="btn-save" onclick="saveModal()">저장</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
-  const BG = {
-    default:'#f0e8e0', gray:'#f0f1f3', brown:'#f5ede4',
-    orange:'#fef0e8', yellow:'#fdf6d8', green:'#e8f5e8',
-    blue:'#e4eef8', purple:'#f2ecff', pink:'#fdeef4', red:'#fdeee8'
-  };
-  const TXT = {
-    default:'#7a5c3a', gray:'#5a6370', brown:'#7a5c3a',
-    orange:'#a05030', yellow:'#7a6010', green:'#306830',
-    blue:'#2060a0', purple:'#6040a0', pink:'#a03060', red:'#a03030'
-  };
-
+  const BG  = { default:'#f0e8e0',gray:'#f0f1f3',brown:'#f5ede4',orange:'#fef0e8',yellow:'#fdf6d8',green:'#e8f5e8',blue:'#e4eef8',purple:'#f2ecff',pink:'#fdeef4',red:'#fdeee8' };
+  const TXT = { default:'#7a5c3a',gray:'#5a6370',brown:'#7a5c3a',orange:'#a05030',yellow:'#7a6010',green:'#306830',blue:'#2060a0',purple:'#6040a0',pink:'#a03060',red:'#a03030' };
   const DAYS = ['일','월','화','수','목','금','토'];
-  let schema = null;
-  let stageOptions = [];
-  let allProjects = [];
-  let curYear = new Date().getFullYear();
-  let curMonth = new Date().getMonth(); // 0-based
+
+  let schema=null, stageOptions=[], allProjects=[];
+  let curYear=new Date().getFullYear(), curMonth=new Date().getMonth();
+  let editingPageId=null, selectedStage=null;
 
   function pad(n){ return String(n).padStart(2,'0'); }
   function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
   function moveMonth(dir){
-    curMonth += dir;
-    if(curMonth > 11){ curMonth=0; curYear++; }
-    if(curMonth < 0){ curMonth=11; curYear--; }
+    curMonth+=dir;
+    if(curMonth>11){curMonth=0;curYear++;}
+    if(curMonth<0){curMonth=11;curYear--;}
     render();
   }
 
   async function load(){
-    const btn = document.getElementById('refresh-btn');
+    const btn=document.getElementById('refresh-btn');
     btn.classList.add('spinning');
     try {
       if(!schema){
-        const r = await fetch('/api/notion?action=project-schema');
-        const d = await r.json();
-        schema = d.properties;
-        stageOptions = schema?.['단계']?.select?.options || [];
+        const r=await fetch('/api/notion?action=project-schema');
+        const d=await r.json();
+        schema=d.properties;
+        stageOptions=schema?.['단계']?.select?.options||[];
       }
-      const r2 = await fetch('/api/notion?action=projects', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ page_size:100 })
+      const r2=await fetch('/api/notion?action=projects',{
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({page_size:100})
       });
-      const d2 = await r2.json();
-      allProjects = d2.results || [];
-      buildLegend();
-      render();
-    } catch(e) {
-      document.getElementById('main-content').innerHTML = '<div class="empty">불러오기 실패 😢</div>';
-    } finally {
-      btn.classList.remove('spinning');
-    }
+      const d2=await r2.json();
+      allProjects=d2.results||[];
+      buildLegend(); render();
+    } catch(e){
+      document.getElementById('main-content').innerHTML='<div class="empty">불러오기 실패 😢</div>';
+    } finally { btn.classList.remove('spinning'); }
   }
 
   function buildLegend(){
-    const legend = document.getElementById('legend');
-    legend.innerHTML = '';
-    stageOptions.forEach(opt => {
-      const color = opt.color || 'default';
-      const item = document.createElement('div');
-      item.className = 'legend-item';
-      item.innerHTML = `<div class="legend-dot" style="background:${TXT[color]||TXT.default}"></div>${esc(opt.name)}`;
+    const legend=document.getElementById('legend');
+    legend.innerHTML='';
+    stageOptions.forEach(opt=>{
+      const c=opt.color||'default';
+      const item=document.createElement('div');
+      item.className='legend-item';
+      item.innerHTML=`<div class="legend-dot" style="background:${TXT[c]||TXT.default}"></div>${esc(opt.name)}`;
       legend.appendChild(item);
     });
   }
 
   function render(){
-    const today = new Date();
-    const todayStr = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+    const today=new Date();
+    const todayStr=`${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+    document.getElementById('month-label').textContent=`${curYear}년 ${curMonth+1}월`;
 
-    // 월 레이블
-    document.getElementById('month-label').textContent = `${curYear}년 ${curMonth+1}월`;
-
-    // 이번 달 날짜 목록
-    const daysInMonth = new Date(curYear, curMonth+1, 0).getDate();
-    const dates = [];
-    for(let d=1; d<=daysInMonth; d++){
-      const dateStr = `${curYear}-${pad(curMonth+1)}-${pad(d)}`;
-      const dow = new Date(curYear, curMonth, d).getDay();
-      dates.push({ d, dateStr, dow });
+    const daysInMonth=new Date(curYear,curMonth+1,0).getDate();
+    const dates=[];
+    for(let d=1;d<=daysInMonth;d++){
+      const dateStr=`${curYear}-${pad(curMonth+1)}-${pad(d)}`;
+      const dow=new Date(curYear,curMonth,d).getDay();
+      dates.push({d,dateStr,dow});
     }
 
-    // 이번 달 프로젝트만 필터
-    const monthProjects = allProjects.filter(p => {
-      const dateStr = p.properties['업로드']?.date?.start?.split('T')[0] || null;
+    // 일자 기준으로 이번 달 프로젝트 필터
+    const monthProjects=allProjects.filter(p=>{
+      const dateStr=p.properties['일자']?.date?.start?.split('T')[0]||null;
       if(!dateStr) return false;
-      const [y, m] = dateStr.split('-').map(Number);
-      return y === curYear && m === curMonth+1;
+      const [y,m]=dateStr.split('-').map(Number);
+      return y===curYear && m===curMonth+1;
     });
 
-    // 날짜없는 것도 포함
-    const noDates = allProjects.filter(p => !p.properties['업로드']?.date?.start);
-
-    // 채널 목록 (순서 유지)
-    const channelSet = new Set();
-    allProjects.forEach(p => {
-      const ch = p.properties['채널']?.select?.name;
+    // 채널 목록
+    const channelSet=new Set();
+    allProjects.forEach(p=>{
+      const ch=p.properties['채널']?.select?.name;
       if(ch) channelSet.add(ch);
     });
-    const channels = [...channelSet];
+    const channels=[...channelSet];
 
-    if(channels.length === 0){
-      document.getElementById('main-content').innerHTML = '<div class="empty">프로젝트가 없어요 🌸</div>';
+    if(channels.length===0){
+      document.getElementById('main-content').innerHTML='<div class="empty">프로젝트가 없어요 🌸</div>';
       return;
     }
 
     // 날짜-채널별 그룹핑
-    const grid = {}; // grid[dateStr][channel] = [projects]
-    monthProjects.forEach(p => {
-      const dateStr = p.properties['업로드']?.date?.start?.split('T')[0];
-      const ch = p.properties['채널']?.select?.name || '(미정)';
-      if(!grid[dateStr]) grid[dateStr] = {};
-      if(!grid[dateStr][ch]) grid[dateStr][ch] = [];
+    const grid={};
+    monthProjects.forEach(p=>{
+      const dateStr=p.properties['일자']?.date?.start?.split('T')[0];
+      const ch=p.properties['채널']?.select?.name||'(미정)';
+      if(!grid[dateStr]) grid[dateStr]={};
+      if(!grid[dateStr][ch]) grid[dateStr][ch]=[];
       grid[dateStr][ch].push(p);
     });
 
-    // 테이블 생성
-    const table = document.createElement('table');
-    table.className = 'grid-table';
+    const table=document.createElement('table');
+    table.className='grid-table';
 
-    // 날짜 헤더 행
-    const thead = document.createElement('thead');
-    const headerRow = document.createElement('tr');
-    headerRow.className = 'date-header';
-    const thEmpty = document.createElement('th');
-    thEmpty.textContent = '채널';
+    // 헤더
+    const thead=document.createElement('thead');
+    const headerRow=document.createElement('tr');
+    headerRow.className='date-header';
+    const thEmpty=document.createElement('th');
+    thEmpty.textContent='채널';
     headerRow.appendChild(thEmpty);
-
-    dates.forEach(({ d, dateStr, dow }) => {
-      const th = document.createElement('th');
-      th.textContent = `${d}\n${DAYS[dow]}`;
-      th.style.whiteSpace = 'pre';
-      th.style.lineHeight = '1.4';
-      if(dateStr === todayStr) th.classList.add('today-col');
-      if(dow === 0 || dow === 6) th.classList.add('weekend');
+    dates.forEach(({d,dateStr,dow})=>{
+      const th=document.createElement('th');
+      th.textContent=`${d}\n${DAYS[dow]}`;
+      if(dateStr===todayStr) th.classList.add('today-col');
+      if(dow===0||dow===6) th.classList.add('weekend');
       headerRow.appendChild(th);
     });
     thead.appendChild(headerRow);
     table.appendChild(thead);
 
     // 채널 행
-    const tbody = document.createElement('tbody');
-    channels.forEach(channel => {
-      const tr = document.createElement('tr');
-      tr.className = 'channel-row';
-
-      const tdName = document.createElement('td');
-      tdName.textContent = channel;
+    const tbody=document.createElement('tbody');
+    channels.forEach(channel=>{
+      const tr=document.createElement('tr');
+      tr.className='channel-row';
+      const tdName=document.createElement('td');
+      tdName.textContent=channel;
       tr.appendChild(tdName);
 
-      dates.forEach(({ dateStr, dow }) => {
-        const td = document.createElement('td');
-        if(dateStr === todayStr) td.classList.add('today-col');
+      dates.forEach(({dateStr,dow})=>{
+        const td=document.createElement('td');
+        if(dateStr===todayStr) td.classList.add('today-col');
 
-        const items = grid[dateStr]?.[channel] || [];
-        items.forEach(p => {
-          const props = p.properties;
-          const title = props['진행 중']?.title?.[0]?.plain_text || '(제목 없음)';
-          const stage = props['단계']?.select;
-          const done  = props['완']?.checkbox || false;
-          const color = stage?.color || 'default';
+        const items=grid[dateStr]?.[channel]||[];
+        items.forEach(p=>{
+          const props=p.properties;
+          const title=props['진행 중']?.title?.[0]?.plain_text||'(제목 없음)';
+          const stage=props['단계']?.select;
+          const upload=props['업로드']?.date?.start?.split('T')[0]||null;
+          const done=props['완']?.checkbox||false;
+          const color=stage?.color||'default';
 
-          const block = document.createElement('div');
-          block.className = 'proj-block' + (done?' done':'');
-          block.style.background = BG[color] || BG.default;
-          block.style.color = TXT[color] || TXT.default;
-          block.title = title;
-          block.textContent = title;
-          block.addEventListener('click', () => {
-            window.open(`https://notion.so/${p.id.replace(/-/g,'')}`, '_blank');
+          const block=document.createElement('div');
+          block.className='proj-block'+(done?' done':'');
+          block.style.background=BG[color]||BG.default;
+          block.style.color=TXT[color]||TXT.default;
+
+          const uploadLabel=upload?`업로드 ${upload.slice(5).replace('-','/')}`:'' ;
+          block.innerHTML=`
+            <div class="block-title">${esc(title)}</div>
+            ${upload?`<div class="block-upload">📅 ${uploadLabel}</div>`:''}`;
+
+          block.addEventListener('click', e=>{
+            e.stopPropagation();
+            openModal(p);
           });
           td.appendChild(block);
         });
-
         tr.appendChild(td);
       });
-
       tbody.appendChild(tr);
     });
     table.appendChild(tbody);
 
-    const wrap = document.createElement('div');
-    wrap.className = 'grid-wrap';
+    const wrap=document.createElement('div');
+    wrap.className='grid-wrap';
+    wrap.style.padding='10px 20px 24px';
     wrap.appendChild(table);
 
-    const content = document.getElementById('main-content');
-    content.innerHTML = '';
+    // 드래그 스크롤
+    let isDown=false, startX, startY, scrollLeft, scrollTop;
+    wrap.addEventListener('mousedown', e=>{
+      if(e.target.closest('.proj-block')) return;
+      isDown=true; wrap.classList.add('grabbing');
+      startX=e.pageX-wrap.offsetLeft; startY=e.pageY-wrap.offsetTop;
+      scrollLeft=wrap.scrollLeft; scrollTop=wrap.scrollTop;
+    });
+    wrap.addEventListener('mouseleave',()=>{ isDown=false; wrap.classList.remove('grabbing'); });
+    wrap.addEventListener('mouseup',()=>{ isDown=false; wrap.classList.remove('grabbing'); });
+    wrap.addEventListener('mousemove', e=>{
+      if(!isDown) return; e.preventDefault();
+      const x=e.pageX-wrap.offsetLeft, y=e.pageY-wrap.offsetTop;
+      wrap.scrollLeft=scrollLeft-(x-startX);
+      wrap.scrollTop=scrollTop-(y-startY);
+    });
+
+    const content=document.getElementById('main-content');
+    content.innerHTML='';
     content.appendChild(wrap);
 
     // 오늘로 스크롤
-    setTimeout(() => {
-      const todayTh = document.querySelector('.today-col');
-      if(todayTh) todayTh.scrollIntoView({ inline:'center', behavior:'smooth' });
-    }, 100);
+    setTimeout(()=>{
+      const todayTh=wrap.querySelector('.today-col');
+      if(todayTh) wrap.scrollLeft=todayTh.offsetLeft-100;
+    },100);
+  }
+
+  // 모달
+  function openModal(p){
+    editingPageId=p.id;
+    const props=p.properties;
+    const title=props['진행 중']?.title?.[0]?.plain_text||'(제목 없음)';
+    const currentStage=props['단계']?.select?.name||null;
+    const done=props['완']?.checkbox||false;
+
+    document.getElementById('modal-project-title').textContent=title;
+    document.getElementById('done-check').checked=done;
+
+    // 단계 옵션
+    const stageEl=document.getElementById('stage-options');
+    stageEl.innerHTML='';
+    selectedStage=currentStage;
+    stageOptions.forEach(opt=>{
+      const c=opt.color||'default';
+      const btn=document.createElement('div');
+      btn.className='stage-opt'+(opt.name===currentStage?' selected':'');
+      btn.style.background=BG[c]||BG.default;
+      btn.style.color=TXT[c]||TXT.default;
+      btn.textContent=opt.name;
+      btn.addEventListener('click',()=>{
+        selectedStage=opt.name;
+        stageEl.querySelectorAll('.stage-opt').forEach(b=>b.classList.remove('selected'));
+        btn.classList.add('selected');
+      });
+      stageEl.appendChild(btn);
+    });
+
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function closeModal(){
+    document.getElementById('modal').classList.remove('open');
+    editingPageId=null; selectedStage=null;
+  }
+
+  async function saveModal(){
+    if(!editingPageId) return;
+    const done=document.getElementById('done-check').checked;
+    const body={ properties:{ '완':{ checkbox:done } } };
+    if(selectedStage){
+      body.properties['단계']={ select:{ name:selectedStage } };
+    }
+    try {
+      const res=await fetch(`/api/notion?action=update-project&pageId=${editingPageId}`,{
+        method:'PATCH', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(body)
+      });
+      if(!res.ok) throw new Error();
+      closeModal();
+      showToast('저장됐어요! ✓');
+      await load();
+    } catch(e){ showToast('저장 실패 😢'); }
   }
 
   let toastTimer;
@@ -371,8 +465,12 @@
     toastTimer=setTimeout(()=>t.classList.remove('show'),2000);
   }
 
+  document.getElementById('modal').addEventListener('click',e=>{
+    if(e.target===document.getElementById('modal')) closeModal();
+  });
+
   load();
-  setInterval(load, 5*60*1000);
+  setInterval(load,5*60*1000);
 </script>
 </body>
 </html>
