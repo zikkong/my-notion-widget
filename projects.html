@@ -17,9 +17,7 @@
     ::-webkit-scrollbar{display:none;}
     *{-ms-overflow-style:none;scrollbar-width:none;}
 
-    body {
-      font-family:var(--font); background:#fff; color:var(--txt); min-height:100vh;
-    }
+    body { font-family:var(--font); background:#fff; color:var(--txt); min-height:100vh; }
     body::before {
       content:''; position:fixed; top:0;left:0;right:0;bottom:0;
       border:2px solid var(--border); border-radius:var(--radius);
@@ -29,99 +27,108 @@
     /* 헤더 */
     .header {
       position:sticky; top:0; z-index:50; background:#fff;
-      padding:18px 20px 12px;
+      padding:16px 20px 10px;
       border-bottom:2px solid var(--border);
       display:flex; justify-content:space-between; align-items:center;
     }
-    .header-title { font-size:20px; font-weight:700; letter-spacing:-0.5px; }
+    .header-title { font-size:18px; font-weight:700; letter-spacing:-0.5px; }
+    .header-nav { display:flex; align-items:center; gap:8px; }
+    .month-label { font-size:14px; font-weight:400; min-width:80px; text-align:center; }
+    .nav-btn {
+      background:#FEEAF1; border:1px solid #e8ddd5;
+      border-radius:8px; width:26px; height:26px;
+      cursor:pointer; display:flex; align-items:center;
+      justify-content:center; font-size:13px; color:var(--txt);
+    }
     .icon-btn {
       background:#FEEAF1; border:1px solid #e8ddd5;
-      border-radius:8px; width:28px; height:28px;
+      border-radius:8px; width:26px; height:26px;
       cursor:pointer; display:flex; align-items:center;
       justify-content:center; font-size:13px; color:var(--txt);
     }
     .icon-btn.spinning { animation:spin .6s linear infinite; }
-    @keyframes spin { to { transform:rotate(360deg); } }
+    @keyframes spin { to{transform:rotate(360deg);} }
 
     /* 범례 */
     .legend {
       display:flex; gap:8px; flex-wrap:wrap;
-      padding:10px 20px;
+      padding:8px 20px;
       border-bottom:1px solid #f0e8e0;
     }
     .legend-item {
       display:flex; align-items:center; gap:4px;
       font-size:10px; font-weight:300; color:var(--mute);
     }
-    .legend-dot {
-      width:8px; height:8px; border-radius:50%;
-    }
+    .legend-dot { width:8px; height:8px; border-radius:50%; }
 
-    /* 메인 테이블 */
-    .tracker {
-      padding:12px 20px 24px;
+    /* 그리드 래퍼 */
+    .grid-wrap {
       overflow-x:auto;
+      padding:10px 20px 24px;
     }
 
-    .channel-row {
-      display:flex;
-      align-items:flex-start;
-      gap:10px;
-      margin-bottom:10px;
-      min-height:52px;
+    /* 그리드 테이블 */
+    .grid-table {
+      border-collapse:collapse;
+      min-width:100%;
     }
 
-    .channel-name {
-      width:80px;
-      flex-shrink:0;
-      font-size:12px;
-      font-weight:700;
-      color:var(--txt);
-      padding-top:12px;
+    /* 날짜 헤더 행 */
+    .date-header th {
+      min-width:80px;
+      padding:4px 6px;
+      font-size:10px; font-weight:300; color:var(--mute);
+      text-align:center;
+      border-right:1px solid #f0e8e0;
       white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
     }
+    .date-header th:first-child {
+      min-width:80px;
+      position:sticky; left:0; z-index:5;
+      background:#fff;
+      border-right:2px solid #e8ddd5;
+    }
+    .date-header th.today-col {
+      color:var(--border); font-weight:700;
+      background:#FEF8FA;
+    }
+    .date-header th.weekend { color:#e07070; }
 
-    .channel-blocks {
-      display:flex;
-      gap:6px;
-      flex-wrap:wrap;
-      flex:1;
+    /* 채널 행 */
+    .channel-row td {
+      border-right:1px solid #f0e8e0;
+      border-bottom:1px solid #f0e8e0;
+      padding:3px;
+      vertical-align:top;
+      min-height:40px;
     }
+    .channel-row td:first-child {
+      position:sticky; left:0; z-index:4;
+      background:#fff;
+      border-right:2px solid #e8ddd5;
+      padding:6px 10px;
+      font-size:11px; font-weight:700; color:var(--txt);
+      white-space:nowrap;
+      min-width:80px;
+    }
+    .channel-row td.today-col { background:#FEF8FA; }
 
     /* 프로젝트 블록 */
     .proj-block {
-      border-radius:10px;
-      padding:8px 12px;
+      border-radius:6px;
+      padding:4px 6px;
+      margin-bottom:2px;
       cursor:pointer;
-      transition:opacity .15s, box-shadow .15s;
-      min-width:110px;
-      max-width:160px;
-      position:relative;
+      transition:opacity .15s;
+      font-size:10px; font-weight:300;
+      line-height:1.3;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:100%;
     }
-    .proj-block:hover { opacity:0.85; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
-
-    .block-title {
-      font-size:12px; font-weight:400;
-      line-height:1.3; margin-bottom:4px;
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    }
-    .block-date {
-      font-size:9px; font-weight:300;
-      opacity:0.75;
-    }
-    .block-date.near { font-weight:700; opacity:1; }
-
-    .block-check {
-      position:absolute;
-      top:5px; right:6px;
-      width:14px; height:14px;
-      border-radius:50%;
-      background:rgba(255,255,255,0.4);
-      display:flex; align-items:center; justify-content:center;
-      font-size:8px;
-    }
+    .proj-block:hover { opacity:0.8; }
+    .proj-block.done { opacity:0.45; text-decoration:line-through; }
 
     /* 빈 상태 */
     .empty {
@@ -129,7 +136,6 @@
       font-size:13px; font-weight:300; color:var(--mute);
     }
 
-    /* 토스트 */
     #toast {
       position:fixed; bottom:20px; left:50%;
       transform:translateX(-50%) translateY(80px);
@@ -146,7 +152,14 @@
 
 <div class="header">
   <div class="header-title">📋 프로젝트 트래커</div>
-  <div class="icon-btn" id="refresh-btn" onclick="load()">↻</div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <div class="header-nav">
+      <div class="nav-btn" onclick="moveMonth(-1)">‹</div>
+      <div class="month-label" id="month-label">—</div>
+      <div class="nav-btn" onclick="moveMonth(1)">›</div>
+    </div>
+    <div class="icon-btn" id="refresh-btn" onclick="load()">↻</div>
+  </div>
 </div>
 
 <div class="legend" id="legend"></div>
@@ -154,7 +167,6 @@
 <div id="toast"></div>
 
 <script>
-  // 노션 색상 → 배경/텍스트
   const BG = {
     default:'#f0e8e0', gray:'#f0f1f3', brown:'#f5ede4',
     orange:'#fef0e8', yellow:'#fdf6d8', green:'#e8f5e8',
@@ -166,46 +178,42 @@
     blue:'#2060a0', purple:'#6040a0', pink:'#a03060', red:'#a03030'
   };
 
+  const DAYS = ['일','월','화','수','목','금','토'];
   let schema = null;
-  let stageOptions = []; // 순서 있는 단계 옵션
+  let stageOptions = [];
+  let allProjects = [];
+  let curYear = new Date().getFullYear();
+  let curMonth = new Date().getMonth(); // 0-based
 
-  function formatDate(str){
-    if(!str) return null;
-    const d = new Date(str);
-    const today = new Date(); today.setHours(0,0,0,0);
-    const diff = Math.floor((d-today)/(86400000));
-    const label = `${d.getMonth()+1}/${d.getDate()}`;
-    if(diff<0)  return { str:label+' (지남)', near:true };
-    if(diff===0) return { str:'오늘', near:true };
-    if(diff<=3)  return { str:label+` D-${diff}`, near:true };
-    return { str:label, near:false };
-  }
-
+  function pad(n){ return String(n).padStart(2,'0'); }
   function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function moveMonth(dir){
+    curMonth += dir;
+    if(curMonth > 11){ curMonth=0; curYear++; }
+    if(curMonth < 0){ curMonth=11; curYear--; }
+    render();
+  }
 
   async function load(){
     const btn = document.getElementById('refresh-btn');
     btn.classList.add('spinning');
     try {
-      // 스키마 (단계 색상/순서)
       if(!schema){
         const r = await fetch('/api/notion?action=project-schema');
         const d = await r.json();
         schema = d.properties;
         stageOptions = schema?.['단계']?.select?.options || [];
       }
-
-      // 프로젝트 목록
       const r2 = await fetch('/api/notion?action=projects', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ page_size:100, sorts:[{property:'업로드', direction:'ascending'}] })
+        body: JSON.stringify({ page_size:100 })
       });
       const d2 = await r2.json();
-      const projects = d2.results || [];
-
+      allProjects = d2.results || [];
       buildLegend();
-      render(projects);
+      render();
     } catch(e) {
       document.getElementById('main-content').innerHTML = '<div class="empty">불러오기 실패 😢</div>';
     } finally {
@@ -225,80 +233,134 @@
     });
   }
 
-  function render(projects){
-    const content = document.getElementById('main-content');
+  function render(){
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
 
-    if(projects.length === 0){
-      content.innerHTML = '<div class="empty">진행 중인 프로젝트가 없어요 🌸</div>';
+    // 월 레이블
+    document.getElementById('month-label').textContent = `${curYear}년 ${curMonth+1}월`;
+
+    // 이번 달 날짜 목록
+    const daysInMonth = new Date(curYear, curMonth+1, 0).getDate();
+    const dates = [];
+    for(let d=1; d<=daysInMonth; d++){
+      const dateStr = `${curYear}-${pad(curMonth+1)}-${pad(d)}`;
+      const dow = new Date(curYear, curMonth, d).getDay();
+      dates.push({ d, dateStr, dow });
+    }
+
+    // 이번 달 프로젝트만 필터
+    const monthProjects = allProjects.filter(p => {
+      const dateStr = p.properties['업로드']?.date?.start?.split('T')[0] || null;
+      if(!dateStr) return false;
+      const [y, m] = dateStr.split('-').map(Number);
+      return y === curYear && m === curMonth+1;
+    });
+
+    // 날짜없는 것도 포함
+    const noDates = allProjects.filter(p => !p.properties['업로드']?.date?.start);
+
+    // 채널 목록 (순서 유지)
+    const channelSet = new Set();
+    allProjects.forEach(p => {
+      const ch = p.properties['채널']?.select?.name;
+      if(ch) channelSet.add(ch);
+    });
+    const channels = [...channelSet];
+
+    if(channels.length === 0){
+      document.getElementById('main-content').innerHTML = '<div class="empty">프로젝트가 없어요 🌸</div>';
       return;
     }
 
-    // 채널별 그룹핑
-    const channelMap = {};
-    projects.forEach(p => {
-      const ch = p.properties['채널']?.select?.name || '(채널 미정)';
-      if(!channelMap[ch]) channelMap[ch] = [];
-      channelMap[ch].push(p);
+    // 날짜-채널별 그룹핑
+    const grid = {}; // grid[dateStr][channel] = [projects]
+    monthProjects.forEach(p => {
+      const dateStr = p.properties['업로드']?.date?.start?.split('T')[0];
+      const ch = p.properties['채널']?.select?.name || '(미정)';
+      if(!grid[dateStr]) grid[dateStr] = {};
+      if(!grid[dateStr][ch]) grid[dateStr][ch] = [];
+      grid[dateStr][ch].push(p);
     });
 
-    const tracker = document.createElement('div');
-    tracker.className = 'tracker';
+    // 테이블 생성
+    const table = document.createElement('table');
+    table.className = 'grid-table';
 
-    Object.entries(channelMap).forEach(([channel, items]) => {
-      const row = document.createElement('div');
-      row.className = 'channel-row';
+    // 날짜 헤더 행
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    headerRow.className = 'date-header';
+    const thEmpty = document.createElement('th');
+    thEmpty.textContent = '채널';
+    headerRow.appendChild(thEmpty);
 
-      const nameEl = document.createElement('div');
-      nameEl.className = 'channel-name';
-      nameEl.textContent = channel;
-      row.appendChild(nameEl);
+    dates.forEach(({ d, dateStr, dow }) => {
+      const th = document.createElement('th');
+      th.textContent = `${d}\n${DAYS[dow]}`;
+      th.style.whiteSpace = 'pre';
+      th.style.lineHeight = '1.4';
+      if(dateStr === todayStr) th.classList.add('today-col');
+      if(dow === 0 || dow === 6) th.classList.add('weekend');
+      headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
 
-      const blocks = document.createElement('div');
-      blocks.className = 'channel-blocks';
+    // 채널 행
+    const tbody = document.createElement('tbody');
+    channels.forEach(channel => {
+      const tr = document.createElement('tr');
+      tr.className = 'channel-row';
 
-      // 날짜순 정렬
-      items.sort((a,b) => {
-        const da = a.properties['업로드 예정일']?.date?.start || '9999';
-        const db = b.properties['업로드 예정일']?.date?.start || '9999';
-        return da.localeCompare(db);
-      });
+      const tdName = document.createElement('td');
+      tdName.textContent = channel;
+      tr.appendChild(tdName);
 
-      items.forEach(p => {
-        const props = p.properties;
-        const title   = props['진행 중']?.title?.[0]?.plain_text || '(제목 없음)';
-        const stage   = props['단계']?.select;
-        const dateStr = props['업로드']?.date?.start || null;
-        const done    = props['완']?.checkbox || false;
-        const dateInfo = dateStr ? formatDate(dateStr) : null;
+      dates.forEach(({ dateStr, dow }) => {
+        const td = document.createElement('td');
+        if(dateStr === todayStr) td.classList.add('today-col');
 
-        const color = stage?.color || 'default';
-        const bg  = BG[color]  || BG.default;
-        const txt = TXT[color] || TXT.default;
+        const items = grid[dateStr]?.[channel] || [];
+        items.forEach(p => {
+          const props = p.properties;
+          const title = props['진행 중']?.title?.[0]?.plain_text || '(제목 없음)';
+          const stage = props['단계']?.select;
+          const done  = props['완']?.checkbox || false;
+          const color = stage?.color || 'default';
 
-        const block = document.createElement('div');
-        block.className = 'proj-block';
-        block.style.background = bg;
-        block.style.color = txt;
-        if(done) block.style.opacity = '0.5';
-
-        block.innerHTML = `
-          <div class="block-check" style="color:${txt}">${done?'✓':''}</div>
-          <div class="block-title">${esc(title)}</div>
-          ${dateInfo ? `<div class="block-date ${dateInfo.near?'near':''}">${dateInfo.str}</div>` : ''}`;
-
-        block.addEventListener('click', () => {
-          window.open(`https://notion.so/${p.id.replace(/-/g,'')}`, '_blank');
+          const block = document.createElement('div');
+          block.className = 'proj-block' + (done?' done':'');
+          block.style.background = BG[color] || BG.default;
+          block.style.color = TXT[color] || TXT.default;
+          block.title = title;
+          block.textContent = title;
+          block.addEventListener('click', () => {
+            window.open(`https://notion.so/${p.id.replace(/-/g,'')}`, '_blank');
+          });
+          td.appendChild(block);
         });
 
-        blocks.appendChild(block);
+        tr.appendChild(td);
       });
 
-      row.appendChild(blocks);
-      tracker.appendChild(row);
+      tbody.appendChild(tr);
     });
+    table.appendChild(tbody);
 
+    const wrap = document.createElement('div');
+    wrap.className = 'grid-wrap';
+    wrap.appendChild(table);
+
+    const content = document.getElementById('main-content');
     content.innerHTML = '';
-    content.appendChild(tracker);
+    content.appendChild(wrap);
+
+    // 오늘로 스크롤
+    setTimeout(() => {
+      const todayTh = document.querySelector('.today-col');
+      if(todayTh) todayTh.scrollIntoView({ inline:'center', behavior:'smooth' });
+    }, 100);
   }
 
   let toastTimer;
