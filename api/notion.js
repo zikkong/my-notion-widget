@@ -2,11 +2,11 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
   if (req.method === "OPTIONS") return res.status(200).end();
 
-  const TOKEN = process.env.NOTION_TOKEN;
-  const DB_ID = process.env.NOTION_DB_ID;
+  const TOKEN      = process.env.NOTION_TOKEN;
+  const DB_ID      = process.env.NOTION_DB_ID;
+  const PROJECT_DB = process.env.NOTION_PROJECT_DB; // 프로젝트 트래커 DB
 
   if (!TOKEN || !DB_ID) {
     return res.status(500).json({ error: "서버 환경변수가 설정되지 않았습니다." });
@@ -31,6 +31,40 @@ export default async function handler(req, res) {
       return res.status(response.status).json(data);
     }
 
+    // ── 프로젝트 트래커 DB 스키마 가져오기 (Select 색상 포함) ──
+    if (action === 'project-schema') {
+      const response = await fetch(
+        `https://api.notion.com/v1/databases/${PROJECT_DB}`,
+        { method: "GET", headers: notionHeaders }
+      );
+      const data = await response.json();
+      return res.status(response.status).json(data);
+    }
+
+    // ── 프로젝트 트래커 목록 가져오기 ──
+    if (action === 'projects') {
+      const body = req.method === 'POST' ? req.body : {
+        sorts: [{ property: '업로드 예정일', direction: 'ascending' }],
+        page_size: 100
+      };
+      const response = await fetch(
+        `https://api.notion.com/v1/databases/${PROJECT_DB}/query`,
+        { method: "POST", headers: notionHeaders, body: JSON.stringify(body) }
+      );
+      const data = await response.json();
+      return res.status(response.status).json(data);
+    }
+
+    // ── 프로젝트 속성 업데이트 ──
+    if (action === 'update-project' && pageId && req.method === 'PATCH') {
+      const response = await fetch(
+        `https://api.notion.com/v1/pages/${pageId}`,
+        { method: "PATCH", headers: notionHeaders, body: JSON.stringify(req.body) }
+      );
+      const data = await response.json();
+      return res.status(response.status).json(data);
+    }
+
     // ── 체크박스 업데이트 ──
     if (req.method === "PATCH" && pageId) {
       const response = await fetch(
@@ -41,7 +75,7 @@ export default async function handler(req, res) {
       return res.status(response.status).json(data);
     }
 
-    // ── 할 일 목록 가져오기 ──
+    // ── 투두 목록 가져오기 ──
     if (req.method === "POST" || req.method === "GET") {
       const today = new Date().toISOString().split("T")[0];
       const body = req.method === "POST" ? req.body : {
