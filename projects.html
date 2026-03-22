@@ -58,9 +58,10 @@
     .grid-wrap {
       overflow-x:auto;
       overflow-y:auto;
-      padding:10px 0 24px;
+      padding:10px 20px 24px;
       cursor:grab;
       user-select:none;
+      max-height: calc(100vh - 120px);
     }
     .grid-wrap.grabbing { cursor:grabbing; }
 
@@ -250,7 +251,13 @@
   function buildLegend(){
     const legend=document.getElementById('legend');
     legend.innerHTML='';
-    stageOptions.forEach(opt=>{
+    // 원하는 순서로 정렬
+    const ORDER=['계약서','가이드','기획안','히든링크','업로드'];
+    const sorted=[
+      ...ORDER.map(name=>stageOptions.find(o=>o.name.includes(name))).filter(Boolean),
+      ...stageOptions.filter(o=>!ORDER.some(name=>o.name.includes(name)))
+    ];
+    sorted.forEach(opt=>{
       const c=opt.color||'default';
       const item=document.createElement('div');
       item.className='legend-item';
@@ -391,7 +398,6 @@
 
     const wrap=document.createElement('div');
     wrap.className='grid-wrap';
-    wrap.style.padding='10px 20px 24px';
     wrap.appendChild(table);
 
     // 드래그 스크롤
