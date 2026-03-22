@@ -13,9 +13,9 @@
       --border: #615847;
       --txt:    #615847;
       --mute:   #a08c78;
-      --bg:     #faf7f5;
+      --bg:     #ffffff;
       --font:   'SBAggroOTF', sans-serif;
-      --radius: 16px;
+      --radius: 18px;
     }
 
     *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
@@ -35,13 +35,13 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
       padding-bottom: 16px;
       border-bottom: 2px solid var(--border);
     }
 
     .site-title {
-      font-size: 28px;
+      font-size: 26px;
       font-weight: 700;
       color: var(--txt);
       letter-spacing: -1px;
@@ -70,12 +70,13 @@
 
     /* 위젯 카드 */
     .widget-card {
-      background: #fff;
       border: 1.5px solid #e8ddd5;
       border-radius: var(--radius);
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      background: #fff;
+      position: relative;
     }
 
     .widget-card.span2 { grid-column: span 2; }
@@ -85,33 +86,54 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 14px 0;
+      padding: 10px 14px 6px;
       flex-shrink: 0;
+      border-bottom: 1px solid #f0e8e0;
     }
 
     .card-title {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 400;
       color: var(--mute);
-      letter-spacing: 0.05em;
+      letter-spacing: 0.08em;
     }
+
+    .card-actions { display:flex; gap:6px; align-items:center; }
 
     .card-link {
       font-size: 10px;
-      font-weight: 300;
       color: var(--mute);
       text-decoration: none;
-      padding: 2px 8px;
+      padding: 2px 7px;
       border-radius: 20px;
       border: 1px solid #e8ddd5;
       transition: all .15s;
     }
     .card-link:hover { background: var(--border); color:#fff; border-color:var(--border); }
 
+    /* 높이 조절 핸들 */
+    .resize-bar {
+      height: 6px;
+      background: #f5f0ec;
+      cursor: ns-resize;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .15s;
+    }
+    .resize-bar:hover { background: #e8ddd5; }
+    .resize-bar::after {
+      content: '';
+      width: 24px; height: 2px;
+      background: #c8bdb0;
+      border-radius: 99px;
+    }
+
     iframe {
       width: 100%;
       border: none;
-      flex: 1;
+      display: block;
     }
   </style>
 </head>
@@ -125,69 +147,90 @@
     <div class="header-time" id="header-time">—</div>
   </div>
 
-  <div class="grid">
+  <div class="grid" id="grid">
 
     <!-- 날짜 -->
-    <div class="widget-card">
+    <div class="widget-card" id="card-date">
       <div class="card-header">
         <span class="card-title">DATE</span>
-        <a class="card-link" href="/date" target="_blank">↗</a>
+        <div class="card-actions">
+          <a class="card-link" href="/date" target="_blank">↗</a>
+        </div>
       </div>
-      <iframe src="/date" height="130"></iframe>
+      <iframe id="if-date" src="/date" height="150"></iframe>
+      <div class="resize-bar" data-target="if-date"></div>
     </div>
 
     <!-- 근태 관리 -->
-    <div class="widget-card">
+    <div class="widget-card" id="card-attendance">
       <div class="card-header">
         <span class="card-title">근태 관리</span>
-        <a class="card-link" href="/attendance" target="_blank">↗</a>
+        <div class="card-actions">
+          <a class="card-link" href="/attendance" target="_blank">↗</a>
+        </div>
       </div>
-      <iframe src="/attendance" height="130"></iframe>
+      <iframe id="if-attendance" src="/attendance" height="150"></iframe>
+      <div class="resize-bar" data-target="if-attendance"></div>
     </div>
 
     <!-- 메모 -->
-    <div class="widget-card">
+    <div class="widget-card" id="card-memo">
       <div class="card-header">
         <span class="card-title">MEMO</span>
-        <a class="card-link" href="/memo" target="_blank">↗</a>
+        <div class="card-actions">
+          <a class="card-link" href="/memo" target="_blank">↗</a>
+        </div>
       </div>
-      <iframe src="/memo" height="130"></iframe>
+      <iframe id="if-memo" src="/memo" height="150"></iframe>
+      <div class="resize-bar" data-target="if-memo"></div>
     </div>
 
     <!-- 투두 -->
     <div class="widget-card span2">
       <div class="card-header">
         <span class="card-title">TO-DO</span>
-        <a class="card-link" href="/todo" target="_blank">↗</a>
+        <div class="card-actions">
+          <a class="card-link" href="/todo" target="_blank">↗</a>
+        </div>
       </div>
-      <iframe src="/todo" height="340"></iframe>
+      <iframe id="if-todo" src="/todo" height="380"></iframe>
+      <div class="resize-bar" data-target="if-todo"></div>
     </div>
 
     <!-- 타임트래커 -->
     <div class="widget-card">
       <div class="card-header">
         <span class="card-title">TIME TRACKER</span>
-        <a class="card-link" href="/timetracker" target="_blank">↗</a>
+        <div class="card-actions">
+          <a class="card-link" href="/timetracker" target="_blank">↗</a>
+        </div>
       </div>
-      <iframe src="/timetracker" height="340"></iframe>
+      <iframe id="if-timetracker" src="/timetracker" height="380"></iframe>
+      <div class="resize-bar" data-target="if-timetracker"></div>
     </div>
 
     <!-- 캘린더 -->
     <div class="widget-card span2">
       <div class="card-header">
         <span class="card-title">CALENDAR</span>
-        <a class="card-link" href="/calendar" target="_blank">↗</a>
+        <div class="card-actions">
+          <a class="card-link" href="/calendar" target="_blank">↗</a>
+        </div>
       </div>
-      <iframe src="/calendar" height="340"></iframe>
+      <iframe id="if-calendar" src="/calendar" height="400"></iframe>
+      <div class="resize-bar" data-target="if-calendar"></div>
     </div>
 
     <!-- 프로젝트 트래커 -->
     <div class="widget-card span3">
       <div class="card-header">
         <span class="card-title">PROJECT TRACKER</span>
-        <a class="card-link" href="/projects" target="_blank">↗</a>
+        <div class="card-actions">
+          <a class="card-link" href="/projects" target="_blank">↗</a>
+        </div>
       </div>
-      <iframe src="/projects" height="300"></iframe>
+      <iframe id="if-projects" src="/projects" height="320"></iframe>
+      <div class="resize-bar" data-target="if-projects"></div>
     </div>
 
   </div>
@@ -200,13 +243,51 @@
       const dow = DAYS[now.getDay()];
       const h=String(now.getHours()).padStart(2,'0');
       const min=String(now.getMinutes()).padStart(2,'0');
-      document.getElementById('today-sub').textContent =
-        `${y}년 ${m}월 ${d}일 (${dow})`;
-      document.getElementById('header-time').textContent =
-        `현재 시각 ${h}:${min}`;
+      document.getElementById('today-sub').textContent = `${y}년 ${m}월 ${d}일 (${dow})`;
+      document.getElementById('header-time').textContent = `현재 시각 ${h}:${min}`;
     }
     update();
     setInterval(update, 60000);
+
+    // 높이 저장/복원
+    const HEIGHTS_KEY = 'dashboard-heights';
+    const saved = JSON.parse(localStorage.getItem(HEIGHTS_KEY) || '{}');
+    Object.entries(saved).forEach(([id, h]) => {
+      const el = document.getElementById(id);
+      if(el) el.height = h;
+    });
+
+    function saveHeights(){
+      const heights = {};
+      document.querySelectorAll('iframe[id]').forEach(el => {
+        heights[el.id] = el.height;
+      });
+      localStorage.setItem(HEIGHTS_KEY, JSON.stringify(heights));
+    }
+
+    // 리사이즈 핸들
+    let resizing = null, startY = 0, startH = 0;
+
+    document.querySelectorAll('.resize-bar').forEach(bar => {
+      bar.addEventListener('mousedown', e => {
+        const target = document.getElementById(bar.dataset.target);
+        if(!target) return;
+        resizing = target;
+        startY = e.clientY;
+        startH = parseInt(target.height);
+        e.preventDefault();
+      });
+    });
+
+    document.addEventListener('mousemove', e => {
+      if(!resizing) return;
+      const newH = Math.max(80, startH + (e.clientY - startY));
+      resizing.height = newH;
+    });
+
+    document.addEventListener('mouseup', () => {
+      if(resizing){ saveHeights(); resizing = null; }
+    });
   </script>
 
 </body>
