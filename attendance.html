@@ -48,25 +48,44 @@
       color:var(--txt); cursor:pointer;
     }
 
+    /* 상단 고정 영역 */
+    .sticky-top {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: #fff;
+      padding-bottom: 8px;
+      border-bottom: 1.5px solid #e8ddd5;
+      margin-bottom: 4px;
+    }
+
     /* 금요일 조기퇴근 배너 */
     .friday-banner {
-      margin: 12px 16px 0;
+      margin: 10px 16px 0;
       border-radius: 12px;
-      padding: 12px 16px;
+      padding: 14px 18px;
       display: flex; align-items:center; justify-content:space-between;
-      font-size: 13px; font-weight:400;
+      font-size: 14px; font-weight:700;
+      border: 2px solid transparent;
     }
-    .friday-banner.possible { background: var(--green); }
-    .friday-banner.impossible { background: var(--surface); border:1.5px solid #e8ddd5; }
+    .friday-banner.possible {
+      background: var(--green);
+      border-color: #a0d060;
+    }
+    .friday-banner.impossible {
+      background: var(--surface);
+      border-color: #e8ddd5;
+      font-weight: 400;
+    }
     .friday-banner .badge {
-      font-size: 11px; font-weight:300;
-      padding: 3px 10px; border-radius:20px;
-      background: rgba(255,255,255,0.6);
+      font-size: 12px; font-weight:400;
+      padding: 4px 12px; border-radius:20px;
+      background: rgba(255,255,255,0.7);
     }
 
     /* 주간 진행률 */
     .week-progress {
-      margin: 10px 16px;
+      margin: 8px 16px 0;
       background: var(--surface);
       border: 1.5px solid #e8ddd5;
       border-radius: 12px;
@@ -221,6 +240,7 @@
   </div>
 </div>
 
+<div class="sticky-top">
 <div class="friday-banner impossible" id="friday-banner">
   <span id="friday-text">금요일 16시 퇴근까지 —</span>
   <span class="badge" id="friday-badge">—</span>
@@ -234,6 +254,7 @@
   <div class="prog-bar-bg">
     <div class="prog-bar-fill going" id="prog-fill" style="width:0%"></div>
   </div>
+</div>
 </div>
 
 <div class="day-list" id="day-list"></div>
@@ -388,11 +409,11 @@
     const todayDow = now.getDay(); // 1=월 5=금
     const todayName = ['일','월','화','수','목','금','토'][todayDow];
 
-    // 오늘 요일부터 시작해서 순서 재배열
+    // 오늘 요일부터 시작 (주말이면 월요일부터)
     const todayIdx = DAYS.indexOf(todayName);
     const orderedDays = todayIdx >= 0
       ? [...DAYS.slice(todayIdx), ...DAYS.slice(0, todayIdx)]
-      : DAYS;
+      : DAYS; // 주말엔 그냥 월~금 순서
 
     orderedDays.forEach(dayName => {
       const rec = data.days[dayName];
