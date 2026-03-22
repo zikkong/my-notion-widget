@@ -1,7 +1,7 @@
 {
   "rewrites": [
     { "source": "/", "destination": "/home.html" },
-    { "source": "/todo", "destination": "/index.html" },
+    { "source": "/todo", "destination": "/todo.html" },
     { "source": "/calendar", "destination": "/calendar.html" },
     { "source": "/timetracker", "destination": "/timetracker.html" },
     { "source": "/date", "destination": "/date-widget.html" },
