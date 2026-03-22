@@ -8,13 +8,5 @@
     { "source": "/label", "destination": "/label.html" },
     { "source": "/projects", "destination": "/projects.html" },
     { "source": "/home", "destination": "/home.html" }
-```
-
-레이아웃:
-```
-[날짜]        [근태관리]     [메모]
-[투두 (2칸)]               [타임트래커]
-[캘린더 (2칸)]             [  (빈칸)  ]
-[프로젝트 트래커 (3칸 전체)]
   ]
 }
