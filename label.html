@@ -11,13 +11,16 @@
 
     * { box-sizing:border-box; margin:0; padding:0; }
 
+    html, body {
+      height: auto;
+      overflow: hidden;
+    }
     body {
       font-family: 'SBAggroOTF', sans-serif;
       background: transparent;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 0;
       padding: 0;
       margin: 0;
       position: relative;
@@ -28,7 +31,7 @@
     /* 라벨 텍스트 */
     .label {
       display: inline-block;
-      padding: 4px 14px 5px;
+      padding: 0px 14px;
       border-radius: 6px;
       cursor: pointer;
       transition: opacity .15s;
