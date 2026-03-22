@@ -17,7 +17,7 @@
     ::-webkit-scrollbar{display:none;}
     *{-ms-overflow-style:none;scrollbar-width:none;}
 
-    body { font-family:var(--font); background:#fff; color:var(--txt); min-height:100vh; }
+    body { font-family:var(--font); background:#fff; color:var(--txt); height:100vh; display:flex; flex-direction:column; overflow:hidden; }
     body::before {
       content:''; position:fixed; top:0;left:0;right:0;bottom:0;
       border:2px solid var(--border); border-radius:var(--radius);
@@ -61,9 +61,11 @@
       padding:10px 20px 24px;
       cursor:grab;
       user-select:none;
-      max-height: calc(100vh - 120px);
+      flex:1;
+      height:100%;
     }
     .grid-wrap.grabbing { cursor:grabbing; }
+    .grid-wrap [draggable] { cursor:grab; }
 
     .grid-table {
       border-collapse:collapse;
@@ -159,6 +161,10 @@
 
     .empty { text-align:center; padding:40px; font-size:13px; font-weight:300; color:var(--mute); }
 
+    /* 드래그앤드롭 */
+    .proj-block.dragging-block { opacity:0.5; cursor:grabbing !important; }
+    .channel-row td.drag-over { background:rgba(97,88,71,0.08) !important; outline:2px dashed var(--border); outline-offset:-2px; }
+
     #toast {
       position:fixed; bottom:20px; left:50%;
       transform:translateX(-50%) translateY(80px);
@@ -186,7 +192,7 @@
 </div>
 
 <div class="legend" id="legend"></div>
-<div id="main-content"><div class="empty">불러오는 중...</div></div>
+<div id="main-content" style="flex:1;overflow:hidden;display:flex;flex-direction:column;"><div class="empty">불러오는 중...</div></div>
 
 <!-- 수정 모달 -->
 <div class="modal-overlay" id="modal">
@@ -384,12 +390,50 @@
               ${uploadLabel?`<div class="block-upload">📅 ${uploadLabel} 업로드</div>`:''}`;
           }
 
+          // 클릭 vs 드래그 구분
+          let dragMoved = false;
+          block.addEventListener('mousedown', e=>{ dragMoved=false; });
+          block.addEventListener('mousemove', e=>{ dragMoved=true; });
           block.addEventListener('click', e=>{
             e.stopPropagation();
-            openModal(p);
+            if(!dragMoved) openModal(p);
           });
+
+          // 드래그앤드롭으로 날짜 변경
+          block.draggable = true;
+          block.addEventListener('dragstart', e=>{
+            e.dataTransfer.setData('pageId', p.id);
+            e.dataTransfer.setData('type', type);
+            block.classList.add('dragging-block');
+            e.stopPropagation();
+          });
+          block.addEventListener('dragend', ()=>{ block.classList.remove('dragging-block'); });
+
           td.appendChild(block);
         });
+        // 드롭 대상
+        td.addEventListener('dragover', e=>{
+          e.preventDefault();
+          td.classList.add('drag-over');
+        });
+        td.addEventListener('dragleave', ()=>{ td.classList.remove('drag-over'); });
+        td.addEventListener('drop', async e=>{
+          e.preventDefault();
+          td.classList.remove('drag-over');
+          const pageId = e.dataTransfer.getData('pageId');
+          const dragType = e.dataTransfer.getData('type');
+          if(!pageId || !dateStr) return;
+          const propKey = dragType==='upload' ? '업로드' : '일자';
+          try {
+            await fetch(`/api/notion?action=update-project&pageId=${pageId}`,{
+              method:'PATCH', headers:{'Content-Type':'application/json'},
+              body: JSON.stringify({ properties:{ [propKey]:{ date:{ start: dateStr } } } })
+            });
+            showToast(`날짜 변경됨 → ${dateStr.slice(5).replace('-','/')} ✓`);
+            await load();
+          } catch(e){ showToast('날짜 변경 실패 😢'); }
+        });
+
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
@@ -405,20 +449,21 @@
     wrap.addEventListener('mousedown', e=>{
       if(e.target.closest('.proj-block')) return;
       isDown=true; wrap.classList.add('grabbing');
-      startX=e.pageX-wrap.offsetLeft; startY=e.pageY-wrap.offsetTop;
+      startX=e.pageX; startY=e.pageY;
       scrollLeft=wrap.scrollLeft; scrollTop=wrap.scrollTop;
     });
-    wrap.addEventListener('mouseleave',()=>{ isDown=false; wrap.classList.remove('grabbing'); });
-    wrap.addEventListener('mouseup',()=>{ isDown=false; wrap.classList.remove('grabbing'); });
-    wrap.addEventListener('mousemove', e=>{
+    document.addEventListener('mouseleave',()=>{ isDown=false; wrap.classList.remove('grabbing'); });
+    document.addEventListener('mouseup',()=>{ isDown=false; wrap.classList.remove('grabbing'); });
+    document.addEventListener('mousemove', e=>{
       if(!isDown) return; e.preventDefault();
-      const x=e.pageX-wrap.offsetLeft, y=e.pageY-wrap.offsetTop;
-      wrap.scrollLeft=scrollLeft-(x-startX);
-      wrap.scrollTop=scrollTop-(y-startY);
+      wrap.scrollLeft=scrollLeft-(e.pageX-startX);
+      wrap.scrollTop=scrollTop-(e.pageY-startY);
     });
 
     const content=document.getElementById('main-content');
     content.innerHTML='';
+    content.style.display='flex';
+    content.style.flexDirection='column';
     content.appendChild(wrap);
 
     // 오늘로 스크롤
