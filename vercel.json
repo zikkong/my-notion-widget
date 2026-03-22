@@ -5,6 +5,7 @@
     { "source": "/date", "destination": "/date-widget.html" },
     { "source": "/memo", "destination": "/memo.html" },
     { "source": "/attendance", "destination": "/attendance.html" },
-    { "source": "/label", "destination": "/label.html" }
+    { "source": "/label", "destination": "/label.html" },
+    { "source": "/projects", "destination": "/projects.html" }
   ]
 }
