@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Label</title>
+  <style>
+    @font-face { font-family:'SBAggroOTF'; src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroL.woff') format('woff'); font-weight:300; }
+    @font-face { font-family:'SBAggroOTF'; src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroM.woff') format('woff'); font-weight:400; }
+    @font-face { font-family:'SBAggroOTF'; src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/SBAggroB.woff') format('woff'); font-weight:700; }
+
+    * { box-sizing:border-box; margin:0; padding:0; }
+
+    body {
+      font-family: 'SBAggroOTF', sans-serif;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      min-height: 100vh;
+      padding: 8px 12px;
+      position: relative;
+    }
+
+    /* 라벨 텍스트 */
+    .label {
+      display: inline-block;
+      padding: 4px 14px 5px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: opacity .15s;
+      outline: none;
+      min-width: 20px;
+    }
+    .label:hover { opacity: 0.85; }
+
+    /* 편집 패널 */
+    .panel {
+      position: fixed;
+      bottom: 12px; left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border: 2px solid #615847;
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: none;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      z-index: 100;
+      width: calc(100% - 24px);
+    }
+    .panel.open { display: flex; }
+
+    .panel-input {
+      flex: 1; min-width: 80px;
+      border: 1.5px solid #e8ddd5;
+      border-radius: 8px;
+      padding: 5px 8px;
+      font-size: 13px;
+      font-family: 'SBAggroOTF', sans-serif;
+      color: #615847;
+      outline: none;
+    }
+    .panel-input:focus { border-color: #615847; }
+
+    .panel-section {
+      display: flex; gap: 6px; align-items: center;
+    }
+
+    .panel-label {
+      font-size: 9px; font-weight: 300; color: #a08c78;
+      white-space: nowrap;
+    }
+
+    input[type="color"] {
+      width: 24px; height: 24px;
+      border: 1.5px solid #e8ddd5;
+      border-radius: 6px;
+      padding: 1px; cursor: pointer; background: none;
+    }
+
+    .size-btn {
+      background: #FEF8FA; border: 1.5px solid #e8ddd5;
+      border-radius: 6px; width: 24px; height: 24px;
+      cursor: pointer; font-size: 11px; color: #615847;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .size-btn:active { background: #e8ddd5; }
+
+    .size-val {
+      font-size: 11px; font-weight: 300; color: #615847;
+      min-width: 24px; text-align: center;
+    }
+
+    .weight-btn {
+      background: #FEF8FA; border: 1.5px solid #e8ddd5;
+      border-radius: 6px; padding: 3px 8px;
+      cursor: pointer; font-size: 11px; color: #615847;
+    }
+    .weight-btn.active { background: #615847; color: #fff; border-color: #615847; }
+
+    .save-btn {
+      background: #615847; color: #fff; border: none;
+      border-radius: 8px; padding: 5px 12px;
+      font-size: 11px; font-family: 'SBAggroOTF', sans-serif;
+      cursor: pointer; white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+  <span class="label" id="label" onclick="openPanel()">텍스트</span>
+
+  <div class="panel" id="panel">
+    <input class="panel-input" id="text-input" placeholder="텍스트 입력" />
+    <div class="panel-section">
+      <span class="panel-label">배경</span>
+      <input type="color" id="bg-color" />
+    </div>
+    <div class="panel-section">
+      <span class="panel-label">글자</span>
+      <input type="color" id="txt-color" />
+    </div>
+    <div class="panel-section">
+      <span class="panel-label">크기</span>
+      <div class="size-btn" onclick="changeSize(-1)">−</div>
+      <span class="size-val" id="size-val">18</span>
+      <div class="size-btn" onclick="changeSize(1)">+</div>
+    </div>
+    <div class="panel-section">
+      <span class="panel-label">굵기</span>
+      <div class="weight-btn" id="w300" onclick="setWeight(300)">가늘게</div>
+      <div class="weight-btn" id="w400" onclick="setWeight(400)">보통</div>
+      <div class="weight-btn active" id="w700" onclick="setWeight(700)">굵게</div>
+    </div>
+    <button class="save-btn" onclick="save()">저장 ✓</button>
+  </div>
+
+<script>
+  // URL에서 id 가져오기 (없으면 'default')
+  const id = new URLSearchParams(location.search).get('id') || 'default';
+  const STORAGE_KEY = 'label-' + id; // 예: label-1, label-2, label-3
+
+  // 기본값
+  let cfg = {
+    text:   '텍스트',
+    bg:     '#615847',
+    color:  '#ffffff',
+    size:   18,
+    weight: 700,
+  };
+
+  // 저장된 설정 불러오기
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if(saved) cfg = JSON.parse(saved);
+
+  // 라벨에 적용
+  function applyLabel(){
+    const el = document.getElementById('label');
+    el.textContent      = cfg.text;
+    el.style.background = cfg.bg;
+    el.style.color      = cfg.color;
+    el.style.fontSize   = cfg.size + 'px';
+    el.style.fontWeight = cfg.weight;
+  }
+
+  // 패널 열기
+  function openPanel(){
+    document.getElementById('text-input').value = cfg.text;
+    document.getElementById('bg-color').value   = cfg.bg;
+    document.getElementById('txt-color').value  = cfg.color;
+    document.getElementById('size-val').textContent = cfg.size;
+    setWeight(cfg.weight, false);
+    document.getElementById('panel').classList.add('open');
+  }
+
+  // 크기 조절
+  function changeSize(d){
+    cfg.size = Math.max(10, Math.min(48, cfg.size + d));
+    document.getElementById('size-val').textContent = cfg.size;
+    applyLabel();
+  }
+
+  // 굵기 설정
+  function setWeight(w, apply=true){
+    cfg.weight = w;
+    [300,400,700].forEach(v=>{
+      document.getElementById('w'+v).classList.toggle('active', v===w);
+    });
+    if(apply) applyLabel();
+  }
+
+  // 저장
+  function save(){
+    cfg.text   = document.getElementById('text-input').value || '텍스트';
+    cfg.bg     = document.getElementById('bg-color').value;
+    cfg.color  = document.getElementById('txt-color').value;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
+    applyLabel();
+    document.getElementById('panel').classList.remove('open');
+  }
+
+  // 패널 바깥 클릭하면 닫기
+  document.addEventListener('click', e=>{
+    const panel = document.getElementById('panel');
+    const label = document.getElementById('label');
+    if(!panel.contains(e.target) && e.target !== label){
+      panel.classList.remove('open');
+    }
+  });
+
+  applyLabel();
+</script>
+</body>
+</html>
